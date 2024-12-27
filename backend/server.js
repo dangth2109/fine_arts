@@ -4,7 +4,7 @@ const path = require('path');
 const cors = require('cors');
 
 // Load environment variables
-dotenv.config({ path: path.join(__dirname, '../.env') });
+dotenv.config({ path: path.join(__dirname, './.env') });
 
 // Import configurations and utilities
 const connectDB = require('./config/db');
