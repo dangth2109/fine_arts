@@ -1,0 +1,315 @@
+@import '../styles/variables.css';
+
+.custom-navbar {
+  background-color: var(--white);
+  padding: 1rem 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: relative;
+  z-index: 1030;
+}
+
+.navbar-brand {
+  color: var(--primary-color) !important;
+  font-size: 1.5rem;
+  letter-spacing: 0.5px;
+}
+
+.nav-link {
+  color: var(--text-primary) !important;
+  font-weight: 500;
+  padding: 0.5rem 1rem !important;
+  transition: all 0.3s ease;
+}
+
+.nav-link:hover {
+  color: var(--primary-color) !important;
+  transform: translateY(-1px);
+}
+
+.avatar-img {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--primary-color);
+}
+
+.avatar-placeholder {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: var(--primary-color);
+  color: var(--white);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  border: 2px solid var(--primary-color);
+}
+
+.user-dropdown .dropdown-toggle {
+  color: var(--text-primary) !important;
+  padding: 0.5rem 1rem;
+  border-radius: 25px;
+  transition: all 0.3s ease;
+}
+
+.user-dropdown .dropdown-toggle:hover {
+  background-color: var(--primary-bg);
+  color: var(--primary-color) !important;
+}
+
+.user-dropdown .dropdown-menu {
+  margin-top: 0.5rem;
+  border: none;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  z-index: 1031;
+}
+
+.user-dropdown .dropdown-item {
+  padding: 0.75rem 1.5rem;
+  color: var(--text-primary);
+  transition: all 0.2s ease;
+}
+
+.user-dropdown .dropdown-item:hover {
+  background-color: var(--primary-bg);
+  color: var(--primary-color);
+}
+
+/* Responsive styles */
+@media (max-width: 991.98px) {
+  .navbar-collapse {
+    background-color: var(--white);
+    padding: 1rem;
+    border-radius: 8px;
+    margin-top: 0.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    position: absolute;
+    width: 100%;
+    top: 100%;
+    left: 0;
+    z-index: 1031;
+  }
+
+  .nav-link {
+    color: var(--text-primary) !important;
+  }
+
+  .nav-link:hover {
+    color: var(--primary-color) !important;
+  }
+
+  .user-dropdown .dropdown-menu {
+    background-color: var(--white);
+    border: none;
+  }
+
+  .user-dropdown .dropdown-item {
+    color: var(--text-primary);
+  }
+
+  .user-dropdown .dropdown-item:hover {
+    background-color: var(--primary-bg);
+    color: var(--primary-color);
+  }
+}
+
+/* Modal Styles */
+.modal-content {
+  background-color: var(--white);
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.modal-header {
+  border-bottom: 1px solid var(--gray-200);
+  background-color: var(--white);
+  border-radius: 12px 12px 0 0;
+}
+
+.modal-header .modal-title {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.modal-body {
+  background-color: var(--white);
+  color: var(--text-primary);
+}
+
+.modal-footer {
+  border-top: 1px solid var(--gray-200);
+  background-color: var(--white);
+  border-radius: 0 0 12px 12px;
+}
+
+/* Form Styles */
+.form-label {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.form-control {
+  border: 1px solid var(--gray-300);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+}
+
+.form-control:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 0.2rem rgba(30, 136, 229, 0.15);
+}
+
+.form-select {
+  border: 1px solid var(--gray-300);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+}
+
+.form-select:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 0.2rem rgba(30, 136, 229, 0.15);
+}
+
+/* Toast Styles */
+.toast {
+  background-color: var(--white);
+  border: none;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.toast-header {
+  background-color: var(--white);
+  border-bottom: 1px solid var(--gray-200);
+  color: var(--text-primary);
+}
+
+.toast-body {
+  background-color: var(--white);
+  color: var(--text-primary);
+}
+
+/* Alert Styles */
+.alert {
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.alert-danger {
+  background-color: #fee2e2;
+  border-color: #fecaca;
+  color: #dc2626;
+}
+
+/* Button Styles in Modals */
+.modal .btn {
+  padding: 0.5rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 500;
+}
+
+.modal .btn-primary {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+.modal .btn-primary:hover {
+  background-color: var(--primary-dark);
+  border-color: var(--primary-dark);
+}
+
+.modal .btn-secondary {
+  background-color: var(--gray-200);
+  border-color: var(--gray-200);
+  color: var(--text-primary);
+}
+
+.modal .btn-secondary:hover {
+  background-color: var(--gray-300);
+  border-color: var(--gray-300);
+}
+
+/* Modal Backdrop */
+.modal-backdrop {
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-backdrop.show {
+  opacity: 0.5;
+}
+
+/* User Profile Menu Styles */
+.user-profile-menu {
+  padding: 0.5rem;
+  border-radius: 25px;
+  background-color: rgba(0, 0, 0, 0.04);
+  transition: all 0.3s ease;
+}
+
+.user-profile-menu:hover {
+  background-color: rgba(0, 0, 0, 0.08);
+}
+
+.avatar-container {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #e9ecef;
+}
+
+.avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatar-icon {
+  font-size: 1.5rem;
+  color: #6c757d;
+}
+
+.user-email {
+  font-size: 0.9rem;
+  color: #495057;
+  margin-right: 0.5rem;
+}
+
+/* Dropdown styling */
+.user-dropdown .dropdown-toggle::after {
+  margin-left: 0.5rem;
+  vertical-align: middle;
+}
+
+.user-dropdown .dropdown-menu {
+  margin-top: 0.5rem;
+  border: none;
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .user-profile-menu {
+    padding: 0.25rem;
+  }
+  
+  .avatar-container {
+    width: 28px;
+    height: 28px;
+  }
+  
+  .user-email {
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
