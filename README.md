@@ -37,11 +37,9 @@ npm install
 
 Create `.env` file:
 ```env
-NODE_ENV=development
 PORT=3000
 MONGO_URI=mongodb://localhost:27017/art_platform
 JWT_SECRET=dangth
-JWT_EXPIRE=30d
 ```
 
 ### 3. Frontend Setup
@@ -64,6 +62,7 @@ REACT_APP_API_URL=http://localhost:3000/api
 ### 4. Database Setup
 
 #### Import Database
+Create database with `MONGODB_URI` value in `.env` file.
 Using `database` folder to import database.
 
 #### Setup Images
@@ -83,7 +82,7 @@ Backend will run on http://localhost:3000
 cd frontend
 npm start
 ```
-Frontend will run on http://localhost:3001
+Frontend will run on http://localhost:3000
 
 ## Default Accounts
 

@@ -22,9 +22,9 @@ function AppNavbar() {
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showRegisterModal, setShowRegisterModal] = useState(false);
   const [loginForm, setLoginForm] = useState({ email: '', password: '' });
-  const [registerForm, setRegisterForm] = useState({ 
-    email: '', 
-    password: '', 
+  const [registerForm, setRegisterForm] = useState({
+    email: '',
+    password: '',
     confirmPassword: '',
     role: 'student'
   });
@@ -43,20 +43,20 @@ function AppNavbar() {
   useEffect(() => {
     const checkAuth = async () => {
       const token = localStorage.getItem('token');
-      
+
       if (token && !user) {
         try {
           // Set token to axios headers
           api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-          
+
           // Get user data
           const response = await api.get('/users/me');
           const userData = response.data.data;
-          
+
           // Update localStorage and auth context
           localStorage.setItem('user', JSON.stringify(userData));
           login(userData);
-          
+
         } catch (err) {
           console.error('Auth check failed:', err);
           // Clear invalid auth data
@@ -83,7 +83,7 @@ function AppNavbar() {
       setCompetitions(response.data.data);
     } catch (err) {
       setSubmitError('Failed to load competitions');
-      
+
       // Show error toast
       setToastMessage('Failed to load competitions');
       setToastVariant('danger');
@@ -116,13 +116,13 @@ function AppNavbar() {
       setSelectedCompetition('');
       setSelectedFile(null);
       setSubmitError('');
-      
+
       setToastMessage('Artwork submitted successfully!');
       setToastVariant('success');
       setShowToast(true);
     } catch (err) {
       setSubmitError(err.response?.data?.message || 'Failed to submit artwork');
-      
+
       setToastMessage(err.response?.data?.message || 'Failed to submit artwork');
       setToastVariant('danger');
       setShowToast(true);
@@ -172,12 +172,12 @@ function AppNavbar() {
 
     } catch (err) {
       setAuthError(err.response?.data?.message || 'Failed to login');
-      
+
       // Clear any existing auth data
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       delete api.defaults.headers.common['Authorization'];
-      
+
     } finally {
       setIsAuthLoading(false);
     }
@@ -198,7 +198,7 @@ function AppNavbar() {
     formData.append('email', registerForm.email);
     formData.append('password', registerForm.password);
     formData.append('role', registerForm.role === 'other' ? 'user' : registerForm.role);
-    
+
     if (selectedAvatar) {
       formData.append('avatar', selectedAvatar);
     }
@@ -211,11 +211,11 @@ function AppNavbar() {
       });
 
       // Reset form and states
-      setRegisterForm({ 
-        email: '', 
-        password: '', 
-        confirmPassword: '', 
-        role: 'student' 
+      setRegisterForm({
+        email: '',
+        password: '',
+        confirmPassword: '',
+        role: 'student'
       });
       setSelectedAvatar(null);
       setShowRegisterModal(false);
@@ -249,23 +249,23 @@ function AppNavbar() {
           <Navbar.Toggle aria-controls="basic-navbar-nav" />
           <Navbar.Collapse id="basic-navbar-nav">
             <Nav className="me-auto">
-              <Nav.Link 
-                as={Link} 
-                to="/" 
+              <Nav.Link
+                as={Link}
+                to="/"
                 className={location.pathname === '/' ? 'active' : ''}
               >
                 Home
               </Nav.Link>
-              <Nav.Link 
-                as={Link} 
-                to="/competitions" 
+              <Nav.Link
+                as={Link}
+                to="/competitions"
                 className={location.pathname.includes('/competitions') ? 'active' : ''}
               >
                 Competitions
               </Nav.Link>
-              <Nav.Link 
-                as={Link} 
-                to="/exhibitions" 
+              <Nav.Link
+                as={Link}
+                to="/exhibitions"
                 className={location.pathname.includes('/exhibitions') ? 'active' : ''}
               >
                 Exhibitions
@@ -274,14 +274,14 @@ function AppNavbar() {
 
             <Nav>
               {user ? (
-                <NavDropdown 
+                <NavDropdown
                   title={
                     <div className="user-profile-menu d-inline-flex align-items-center">
                       <div className="avatar-container me-2">
                         {user.avatar ? (
-                          <img 
-                            src={`http://localhost:3000${user.avatar}`} 
-                            alt="User Avatar" 
+                          <img
+                            src={`${process.env.REACT_APP_API_URL.replace('/api', '')}${user.avatar}`}
+                            alt="User Avatar"
                             className="avatar-img"
                           />
                         ) : (
@@ -290,7 +290,7 @@ function AppNavbar() {
                       </div>
                       <span className="user-email">{user.email}</span>
                     </div>
-                  } 
+                  }
                   id="user-dropdown"
                   align="end"
                   className="user-dropdown"
@@ -447,11 +447,11 @@ function AppNavbar() {
             <div className="d-flex justify-content-between align-items-center">
               <Button variant="link" onClick={() => {
                 setShowRegisterModal(false);
-                setRegisterForm({ 
-                  email: '', 
-                  password: '', 
-                  confirmPassword: '', 
-                  role: 'student' 
+                setRegisterForm({
+                  email: '',
+                  password: '',
+                  confirmPassword: '',
+                  role: 'student'
                 });
                 setSelectedAvatar(null);
                 setAuthError('');
@@ -505,8 +505,8 @@ function AppNavbar() {
             )}
 
             <div className="d-flex justify-content-end">
-              <Button 
-                variant="secondary" 
+              <Button
+                variant="secondary"
                 className="me-2"
                 onClick={() => {
                   setShowSubmitModal(false);
@@ -515,8 +515,8 @@ function AppNavbar() {
               >
                 Cancel
               </Button>
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 variant="primary"
                 disabled={uploading || !selectedCompetition || !selectedFile}
               >
@@ -529,10 +529,10 @@ function AppNavbar() {
 
       {/* Toast Notification */}
       <div className="toast-container position-fixed bottom-0 end-0 p-3">
-        <Toast 
-          show={showToast} 
-          onClose={() => setShowToast(false)} 
-          delay={3000} 
+        <Toast
+          show={showToast}
+          onClose={() => setShowToast(false)}
+          delay={3000}
           autohide
           bg={toastVariant}
           className="text-white"
