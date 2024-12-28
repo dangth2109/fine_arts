@@ -53,13 +53,13 @@ exports.login = async (req, res) => {
     // Kiểm tra user tồn tại
     const user = await User.findOne({ email });
     if (!user) {
-      return res.status(400).json({ message: 'Email hoặc mật khẩu không đúng' });
+      return res.status(400).json({ message: 'Email or password is incorrect' });
     }
 
     // Kiểm tra password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(400).json({ message: 'Email hoặc mật khẩu không đúng' });
+      return res.status(400).json({ message: 'Email or password is incorrect' });
     }
 
     // Tạo JWT token
@@ -109,7 +109,7 @@ exports.getUserById = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'Không tìm thấy người dùng'
+        message: 'User not found'
       });
     }
 
@@ -134,7 +134,7 @@ exports.getMe = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'Không tìm thấy thông tin người dùng'
+        message: 'User not found'
       });
     }
 
@@ -173,7 +173,7 @@ exports.getUserById = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'Không tìm thấy người dùng'
+        message: 'User not found'
       });
     }
     res.status(200).json({
@@ -203,7 +203,7 @@ exports.updateUser = async (req, res) => {
       }
       return res.status(404).json({
         success: false,
-        message: 'Không tìm thấy người dùng'
+        message: 'User not found'
       });
     }
 
@@ -267,7 +267,7 @@ exports.deleteUser = async (req, res) => {
     if (req.user._id.toString() === req.params.id) {
       return res.status(403).json({
         success: false,
-        message: 'Không thể xóa tài khoản của chính mình'
+        message: 'Cannot delete your own account'
       });
     }
 
@@ -276,7 +276,7 @@ exports.deleteUser = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'Không tìm thấy người dùng'
+        message: 'User not found'
       });
     }
 
@@ -292,7 +292,7 @@ exports.deleteUser = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: 'Xóa người dùng thành công'
+      message: 'User deleted successfully'
     });
   } catch (error) {
     res.status(500).json({
@@ -309,7 +309,7 @@ exports.getMe = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'Không tìm thấy thông tin người dùng'
+        message: 'User not found'
       });
     }
     res.status(200).json({

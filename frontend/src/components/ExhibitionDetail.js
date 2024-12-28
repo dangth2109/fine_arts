@@ -20,7 +20,6 @@ function ExhibitionDetail() {
       try {
         const response = await api.get(`/exhibitions/${id}`);
         setExhibition(response.data.data);
-        // Nếu có artwork, map thành mảng submissions
         if (response.data.data.artwork) {
           setSubmissions(response.data.data.artwork);
         }
@@ -63,36 +62,61 @@ function ExhibitionDetail() {
 
                 <Row className="exhibition-stats text-center g-4">
                   <Col md={4}>
-                    <div className="stat-card p-4 rounded bg-light">
-                      <i className="fas fa-images text-primary fa-2x mb-3"></i>
-                      <h3 className="fw-bold mb-1">{submissions.length}</h3>
-                      <p className="text-muted mb-0">Total Artworks</p>
+                    <div className="stat-card p-4 rounded bg-light d-flex flex-column" 
+                         style={{ height: '180px' }}>
+                      <div className="flex-grow-1 d-flex flex-column align-items-center justify-content-center">
+                        <i className="fas fa-images text-primary fa-2x mb-3"></i>
+                        <h3 className="fw-bold mb-0">{submissions.length}</h3>
+                      </div>
+                      <p className="text-muted mb-0 mt-2">Total Artworks</p>
                     </div>
                   </Col>
                   <Col md={4}>
-                    <div className="stat-card p-4 rounded bg-light">
-                      <i className="fas fa-map-marker-alt text-danger fa-2x mb-3"></i>
-                      <h3 className="fw-bold mb-1">
-                        {exhibition.location || 'Online'}
-                      </h3>
-                      <p className="text-muted mb-0">Location</p>
-                    </div>
-                  </Col>
-                  <Col md={4}>
-                    <div className="stat-card p-4 rounded bg-light">
-                      <i className="fas fa-calendar-alt text-success fa-2x mb-3"></i>
-                      <div className="duration-display">
-                        <h3 className="fw-bold mb-0">
-                          <div className="d-flex justify-content-center align-items-center">
-                            <span>{new Date(exhibition.start).toLocaleDateString()}</span>
-                            <i className="fas fa-arrow-right mx-2 text-muted small"></i>
-                            <span>to</span>
-                            <i className="fas fa-arrow-right mx-2 text-muted small"></i>
-                            <span>{new Date(exhibition.end).toLocaleDateString()}</span>
-                          </div>
+                    <div className="stat-card p-4 rounded bg-light d-flex flex-column"
+                         style={{ height: '180px' }}>
+                      <div className="flex-grow-1 d-flex flex-column align-items-center justify-content-center">
+                        <i className="fas fa-map-marker-alt text-danger fa-2x mb-3"></i>
+                        <h3 className="fw-bold mb-0" style={{ 
+                          wordBreak: 'break-word',
+                          maxWidth: '100%',
+                          overflow: 'hidden',
+                          display: '-webkit-box',
+                          WebkitLineClamp: '3',
+                          WebkitBoxOrient: 'vertical',
+                          fontSize: exhibition.location?.length > 30 
+                            ? exhibition.location.length > 50 
+                              ? '16px' 
+                              : '20px'
+                            : '24px'
+                        }}>
+                          {exhibition.location || 'Online'}
                         </h3>
                       </div>
-                      <p className="text-muted mb-0">Duration</p>
+                      <p className="text-muted mb-0 mt-2">Location</p>
+                    </div>
+                  </Col>
+                  <Col md={4}>
+                    <div className="stat-card p-4 rounded bg-light d-flex flex-column"
+                         style={{ height: '180px' }}>
+                      <div className="flex-grow-1 d-flex flex-column align-items-center justify-content-center">
+                        <i className="fas fa-calendar-alt text-success fa-2x mb-3"></i>
+                        <div className="duration-display">
+                          <h3 className="fw-bold mb-0">
+                            <div className="d-flex flex-column align-items-center">
+                              <span style={{ fontSize: '16px' }}>
+                                {new Date(exhibition.start).toLocaleDateString()}
+                              </span>
+                              <span className="text-muted" style={{ fontSize: '14px', margin: '10px 0' }}>
+                                to
+                              </span>
+                              <span style={{ fontSize: '16px' }}>
+                                {new Date(exhibition.end).toLocaleDateString()}
+                              </span>
+                            </div>
+                          </h3>
+                        </div>
+                      </div>
+                      <p className="text-muted mb-0 mt-2">Duration</p>
                     </div>
                   </Col>
                 </Row>
@@ -163,7 +187,7 @@ function ExhibitionDetail() {
       >
         {selectedSubmission && (
           <>
-            <Modal.Header closeButton className="border-0 bg-dark text-white">
+            <Modal.Header closeButton className="bg-white text-white" style={{borderBottom: '10px solid #cbe1f7 !important', padding: '1rem'}}>
               <Modal.Title>
                 <div>
                   <h5 className="mb-2">

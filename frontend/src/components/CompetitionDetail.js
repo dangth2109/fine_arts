@@ -45,7 +45,7 @@ function CompetitionDetail() {
           api.get(`/competitions/${id}`),
           api.get(`/submissions/competition/${id}`)
         ]);
-        
+
         setCompetition(competitionRes.data.data);
         setSubmissions(submissionsRes.data.data);
       } catch (error) {
@@ -75,14 +75,14 @@ function CompetitionDetail() {
       });
 
       // Update the submission in the local state
-      const updatedSubmissions = submissions.map(sub => 
-        sub._id === selectedSubmission._id 
-          ? { 
-              ...sub, 
-              score: scoreNum,
-              scoredBy: user.email,
-              scoredAt: new Date().toISOString()
-            }
+      const updatedSubmissions = submissions.map(sub =>
+        sub._id === selectedSubmission._id
+          ? {
+            ...sub,
+            score: scoreNum,
+            scoredBy: user.email,
+            scoredAt: new Date().toISOString()
+          }
           : sub
       );
 
@@ -117,8 +117,8 @@ function CompetitionDetail() {
         {/* Competition Details - 8 columns */}
         <Col lg={8}>
           <Card className="competition-header h-100">
-            <Card.Img 
-              variant="top" 
+            <Card.Img
+              variant="top"
               src={`${baseURL}${competition.background}`}
               alt={competition.name}
               className="competition-banner"
@@ -205,8 +205,8 @@ function CompetitionDetail() {
                 </h4>
                 <div className="winners-list">
                   {competition.winners.map((winner, index) => (
-                    <div 
-                      key={winner._id || index} 
+                    <div
+                      key={winner._id || index}
                       className="winner-item d-flex justify-content-between align-items-center"
                     >
                       <div className="winner-rank">
@@ -216,7 +216,7 @@ function CompetitionDetail() {
                         {index > 2 && <span className="rank-badge">#{index + 1}</span>}
                       </div>
                       <div className="winner-info">
-                        <button 
+                        <button
                           className="winner-email-btn"
                           onClick={() => {
                             setSelectedWinner(winner);
@@ -248,8 +248,8 @@ function CompetitionDetail() {
       </Row>
 
       {/* Winner Image Modal */}
-      <Modal 
-        show={showImageModal} 
+      <Modal
+        show={showImageModal}
         onHide={() => {
           setShowImageModal(false);
           setIsFullscreen(false);
@@ -263,12 +263,7 @@ function CompetitionDetail() {
             Winner's Submission - {selectedWinner?.email}
           </Modal.Title>
           <div className="modal-controls ms-auto me-3">
-            <button 
-              className="btn btn-outline-secondary btn-sm"
-              onClick={() => setIsFullscreen(!isFullscreen)}
-            >
-              <i className={`fas fa-${isFullscreen ? 'compress' : 'expand'}`}></i>
-            </button>
+
           </div>
         </Modal.Header>
         <Modal.Body className="modal-body p-0">
@@ -295,15 +290,15 @@ function CompetitionDetail() {
       <Row>
         {submissions.map(submission => (
           <Col key={submission._id} xs={12} md={6} lg={4} className="mb-4">
-            <Card 
+            <Card
               className="submission-card h-100 cursor-pointer"
               onClick={() => {
                 setSelectedSubmission(submission);
                 setShowSubmissionModal(true);
               }}
             >
-              <Card.Img 
-                variant="top" 
+              <Card.Img
+                variant="top"
                 src={`${baseURL}${submission.image}`}
                 alt={`Submission by ${submission.author}`}
                 className="submission-image"
@@ -313,8 +308,8 @@ function CompetitionDetail() {
                   <div className="d-flex justify-content-between align-items-center mb-2">
                     <h5 className="mb-0">{submission.author}</h5>
                     {user?.role === 'admin' ? (
-                      <Badge 
-                        bg="info" 
+                      <Badge
+                        bg={submission.score ? 'success' : 'secondary'}
                         className="cursor-pointer"
                         onClick={() => {
                           setSelectedSubmission(submission);
@@ -324,7 +319,7 @@ function CompetitionDetail() {
                         Score: {submission.score || 'Not scored'}
                       </Badge>
                     ) : (
-                      <Badge bg="info">
+                      <Badge bg={submission.score ? 'success' : 'secondary'} >
                         Score: {submission.score || 'Not scored'}
                       </Badge>
                     )}
@@ -337,8 +332,8 @@ function CompetitionDetail() {
       </Row>
 
       {/* Submission Detail Modal */}
-      <Modal 
-        show={showSubmissionModal} 
+      <Modal
+        show={showSubmissionModal}
         onHide={() => {
           setShowSubmissionModal(false);
           setSelectedSubmission(null);
@@ -361,9 +356,9 @@ function CompetitionDetail() {
                     </small>
                   </div>
                 </div>
-                
-                <Badge 
-                  bg={selectedSubmission.score ? 'success' : 'secondary'} 
+
+                <Badge
+                  bg={selectedSubmission.score ? 'success' : 'secondary'}
                   className="score-badge"
                 >
                   Score: {selectedSubmission.score || 'Not scored'}
@@ -407,7 +402,7 @@ function CompetitionDetail() {
                       {scoreError}
                     </Form.Control.Feedback>
                   </Form.Group>
-                  <Button 
+                  <Button
                     variant="primary"
                     onClick={handleScore}
                     disabled={scoring || !score}

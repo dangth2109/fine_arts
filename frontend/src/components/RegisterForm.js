@@ -41,7 +41,6 @@ function RegisterForm({ onSuccess }) {
         }
       });
       
-      // Hiển thị thông báo thành công trong form
       setSuccess('Registration successful! Please login to continue.');
       
       // Reset form

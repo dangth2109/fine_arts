@@ -52,7 +52,6 @@
     }
   }
   
-  /* Thêm styles mới */
   .competition-banner {
     height: 300px;
     object-fit: cover;
@@ -253,7 +252,7 @@
   }
   
   .modal-body.p-0 {
-    background-color: #f8f9fa;
+    background-color: white !important;
     display: flex;
     justify-content: center;
     align-items: center;

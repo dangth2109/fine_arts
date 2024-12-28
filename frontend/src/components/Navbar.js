@@ -50,10 +50,8 @@ function AppNavbar() {
   const [profileError, setProfileError] = useState('');
   const [updatingProfile, setUpdatingProfile] = useState(false);
 
-  // Thêm ref cho input file
   const fileInputRef = useRef(null);
 
-  // Thêm state mới cho preview
   const [previewAvatar, setPreviewAvatar] = useState(null);
 
   // Check auth status on mount and refresh
@@ -155,24 +153,19 @@ function AppNavbar() {
     setAuthError('');
 
     try {
-      // Step 1: Login to get token
       const loginResponse = await api.post('/users/login', {
         email: loginForm.email,
         password: loginForm.password
       });
 
-      // Save token to localStorage
       const token = loginResponse.data.token;
       localStorage.setItem('token', token);
 
-      // Update axios default headers
       api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 
-      // Step 2: Get user info
       const userResponse = await api.get('/users/me');
       const userData = userResponse.data.data;
 
-      // Save user data to localStorage
       localStorage.setItem('user', JSON.stringify(userData));
 
       // Update auth context
@@ -250,12 +243,11 @@ function AppNavbar() {
   };
 
   const handleLogout = () => {
-    logout(); // Xóa thông tin auth
+    logout();
     setToastMessage('Logged out successfully!');
     setToastVariant('success');
     setShowToast(true);
     
-    // Chỉ navigate về home khi đang ở trang manager
     if (location.pathname.includes('/manager')) {
       navigate('/');
     }
@@ -269,7 +261,6 @@ function AppNavbar() {
     const formData = new FormData();
     formData.append('email', profileForm.email);
     
-    // Chỉ gửi password nếu checkbox được tích
     if (showPasswordField && profileForm.password) {
       formData.append('password', profileForm.password);
     }
@@ -286,12 +277,10 @@ function AppNavbar() {
       });
 
       if (response.data.success) {
-        // Lưu token mới
         const newToken = response.data.data.token;
         localStorage.setItem('token', newToken);
         api.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
 
-        // Lưu thông tin user mới
         const newUserData = response.data.data.user;
         localStorage.setItem('user', JSON.stringify(newUserData));
         login(newUserData);

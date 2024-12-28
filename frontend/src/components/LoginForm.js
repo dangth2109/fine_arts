@@ -18,24 +18,19 @@ function LoginForm({ onSuccess }) {
     setLoading(true);
 
     try {
-      // 1. Login để lấy token
       const loginResponse = await api.post('/users/login', formData);
       const { token, user } = loginResponse.data;
       
-      // 2. Lưu token
       localStorage.setItem('token', token);
 
-      // 3. Tạo user object và lưu vào context
       const userData = {
         email: user.email,
         role: user.role
       };
       login(userData);
 
-      // 4. Cập nhật Authorization header
       api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 
-      // 5. Truyền thông tin user lên component cha
       onSuccess('Login successful!', userData);
     } catch (error) {
       console.error('Login error:', error);

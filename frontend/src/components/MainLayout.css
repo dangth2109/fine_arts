@@ -58,21 +58,6 @@
   margin-bottom: 3rem;
 }
 
-/* Xóa hoặc comment các styles liên quan đến carousel controls */
-/*
-.carousel-control-prev,
-.carousel-control-next {
-  width: 5%;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.custom-carousel:hover .carousel-control-prev,
-.custom-carousel:hover .carousel-control-next {
-  opacity: 1;
-}
-*/
-
 .carousel-indicators {
   position: relative;
   bottom: 0;
