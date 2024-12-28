@@ -125,63 +125,6 @@ exports.getUserById = async (req, res) => {
   }
 };
 
-// Update user
-exports.updateUser = async (req, res) => {
-  try {
-    console.log('1. Starting update process');
-    console.log('Request body after middleware:', req.body);
-    console.log('Request file after middleware:', req.file);
-
-    // Debug log
-    console.log('1.5 Checking request data validity');
-    if (!req.params.id) {
-      console.log('No ID provided');
-      return res.status(400).json({
-        success: false,
-        message: 'No user ID provided'
-      });
-    }
-
-    // Tạo object updateData
-    console.log('1.7 Creating update data object');
-    const updateData = {};
-    
-    if (req.body.email) {
-      console.log('Adding email to update data');
-      updateData.email = req.body.email;
-    }
-    
-    if (req.body.role) {
-      console.log('Adding role to update data');
-      updateData.role = req.body.role;
-    }
-    
-    if (req.file) {
-      console.log('Adding avatar to update data');
-      updateData.avatar = `/images/user/${req.file.filename}`;
-      console.log('Avatar path:', updateData.avatar);
-    }
-
-    console.log('2. Update data to be sent:', updateData);
-
-    // Thực hiện update
-    console.log('2.5 Attempting to update user:', req.params.id);
-    const result = await User.findOneAndUpdate(
-      { _id: req.params.id },
-      updateData,
-      { 
-        new: true,
-        runValidators: true
-      }
-    ).select('-password');
-
-        fs.unlinkSync(avatarPath);
-      }
-    }
-      message: 'Xóa người dùng thành công'
-    });
-  } catch (error) {
-    res.status(500).json({
 // Get current user info
 exports.getMe = async (req, res) => {
   try {
@@ -248,11 +191,13 @@ exports.getUserById = async (req, res) => {
 // Update user (Admin only)
 exports.updateUser = async (req, res) => {
   try {
-    const user = await User.findByIdAndUpdate(
-      req.params.id,
-      { $set: req.body },
-      { new: true }
     console.log('Starting update process');
+    const { email, role, password } = req.body;
+    const salt = await bcrypt.genSalt(10);
+    
+    // Lấy thông tin user hiện tại trước khi update
+    const currentUser = await User.findById(req.params.id);
+    if (!currentUser) {
       if (req.file) {
         fs.unlinkSync(req.file.path);
       }
@@ -357,6 +302,28 @@ exports.deleteUser = async (req, res) => {
   }
 };
 
+// Get current user info
+exports.getMe = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id).select('-password');
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'Không tìm thấy thông tin người dùng'
+      });
+    }
+    res.status(200).json({
+      success: true,
+      data: user
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
+
 exports.updateCurrentUser = async (req, res) => {
   try {
     const user = await User.findById(req.user._id);
@@ -433,27 +400,6 @@ exports.updateCurrentUser = async (req, res) => {
   } catch (error) {
     if (req.file) fs.unlinkSync(req.file.path);
     res.status(400).json({
-      success: false,
-      message: error.message
-    });
-  }
-};
-// Get current user info
-exports.getMe = async (req, res) => {
-  try {
-    const user = await User.findById(req.user._id).select('-password');
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: 'Không tìm thấy thông tin người dùng'
-      });
-    }
-    res.status(200).json({
-      success: true,
-      data: user
-    });
-  } catch (error) {
-    res.status(500).json({
       success: false,
       message: error.message
     });
