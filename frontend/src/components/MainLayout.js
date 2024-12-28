@@ -85,7 +85,7 @@ function MainLayout() {
           <Col>
             {exhibitions.length > 0 ? (
               <Carousel 
-                interval={5000} 
+                interval={3000} 
                 indicators={true} 
                 controls={false}
                 className="custom-carousel"
@@ -159,7 +159,7 @@ function MainLayout() {
           <Col>
             {competitions.length > 0 ? (
               <Carousel 
-                interval={5000} 
+                interval={3000} 
                 indicators={true} 
                 controls={false}
                 className="custom-carousel"

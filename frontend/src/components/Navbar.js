@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Navbar, Container, Nav, NavDropdown, Button, Modal, Form, Toast } from 'react-bootstrap';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -38,6 +38,23 @@ function AppNavbar() {
 
   // Add avatar state
   const [selectedAvatar, setSelectedAvatar] = useState(null);
+
+  // Profile Modal states
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [profileForm, setProfileForm] = useState({
+    email: '',
+    password: '',
+    avatar: null
+  });
+  const [showPasswordField, setShowPasswordField] = useState(false);
+  const [profileError, setProfileError] = useState('');
+  const [updatingProfile, setUpdatingProfile] = useState(false);
+
+  // Thêm ref cho input file
+  const fileInputRef = useRef(null);
+
+  // Thêm state mới cho preview
+  const [previewAvatar, setPreviewAvatar] = useState(null);
 
   // Check auth status on mount and refresh
   useEffect(() => {
@@ -171,7 +188,7 @@ function AppNavbar() {
       setShowToast(true);
 
     } catch (err) {
-      setAuthError(err.response?.data?.message || 'Failed to login');
+      setAuthError(err.message || 'Failed to login');
 
       // Clear any existing auth data
       localStorage.removeItem('token');
@@ -225,15 +242,76 @@ function AppNavbar() {
       setToastVariant('success');
       setShowToast(true);
 
-      // Switch to login modal
-      setTimeout(() => {
-        setShowLoginModal(true);
-      }, 500);
-
     } catch (err) {
       setAuthError(err.response?.data?.message || 'Failed to register');
     } finally {
       setIsAuthLoading(false);
+    }
+  };
+
+  const handleLogout = () => {
+    logout(); // Xóa thông tin auth
+    setToastMessage('Logged out successfully!');
+    setToastVariant('success');
+    setShowToast(true);
+    
+    // Chỉ navigate về home khi đang ở trang manager
+    if (location.pathname.includes('/manager')) {
+      navigate('/');
+    }
+  };
+
+  const handleUpdateProfile = async (e) => {
+    e.preventDefault();
+    setUpdatingProfile(true);
+    setProfileError('');
+
+    const formData = new FormData();
+    formData.append('email', profileForm.email);
+    
+    // Chỉ gửi password nếu checkbox được tích
+    if (showPasswordField && profileForm.password) {
+      formData.append('password', profileForm.password);
+    }
+    
+    if (profileForm.avatar) {
+      formData.append('avatar', profileForm.avatar);
+    }
+
+    try {
+      const response = await api.put('/users/me', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      if (response.data.success) {
+        // Lưu token mới
+        const newToken = response.data.data.token;
+        localStorage.setItem('token', newToken);
+        api.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
+
+        // Lưu thông tin user mới
+        const newUserData = response.data.data.user;
+        localStorage.setItem('user', JSON.stringify(newUserData));
+        login(newUserData);
+
+        setShowProfileModal(false);
+        setToastMessage('Profile updated successfully!');
+        setToastVariant('success');
+      } else {
+        setProfileError(response.data.message || 'Failed to update profile');
+        setToastMessage(response.data.message || 'Failed to update profile');
+        setToastVariant('danger');
+      }
+      setShowToast(true);
+    } catch (err) {
+      setProfileError(err.response?.data?.message || 'Failed to update profile');
+      setToastMessage(err.response?.data?.message || 'Failed to update profile');
+      setToastVariant('danger');
+      setShowToast(true);
+    } finally {
+      setUpdatingProfile(false);
     }
   };
 
@@ -305,8 +383,20 @@ function AppNavbar() {
                     <i className="fas fa-upload me-2"></i>
                     Submit Artwork
                   </NavDropdown.Item>
+                  <NavDropdown.Item onClick={() => {
+                    const userData = JSON.parse(localStorage.getItem('user'));
+                    setProfileForm({
+                      email: userData.email,
+                      password: '',
+                      avatar: null
+                    });
+                    setShowProfileModal(true);
+                  }}>
+                    <i className="fas fa-user me-2"></i>
+                    Profile
+                  </NavDropdown.Item>
                   <NavDropdown.Divider />
-                  <NavDropdown.Item onClick={logout}>
+                  <NavDropdown.Item onClick={handleLogout}>
                     <i className="fas fa-sign-out-alt me-2"></i>
                     Logout
                   </NavDropdown.Item>
@@ -434,6 +524,7 @@ function AppNavbar() {
                 type="file"
                 accept="image/*"
                 onChange={(e) => setSelectedAvatar(e.target.files[0])}
+                required
               />
               <Form.Text className="text-muted">
                 Choose an avatar image or leave empty for default
@@ -527,30 +618,155 @@ function AppNavbar() {
         </Modal.Body>
       </Modal>
 
+      {/* Profile Modal */}
+      <Modal show={showProfileModal} onHide={() => setShowProfileModal(false)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Profile</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form onSubmit={handleUpdateProfile}>
+            <div className="text-center mb-3">
+              <div 
+                className="avatar-container position-relative mx-auto"
+                style={{ width: '100px', height: '100px' }}
+              >
+                <div 
+                  className="position-relative w-100 h-100"
+                  onClick={() => fileInputRef.current?.click()}
+                  style={{ cursor: 'pointer' }}
+                >
+                  <img
+                    src={
+                      previewAvatar 
+                        ? URL.createObjectURL(previewAvatar)
+                        : user?.avatar 
+                          ? `${process.env.REACT_APP_API_URL.replace('/api', '')}${user.avatar}`
+                          : 'https://via.placeholder.com/100'
+                    }
+                    alt="Avatar"
+                    className="rounded-circle w-100 h-100"
+                    style={{ objectFit: 'cover' }}
+                  />
+                  
+                  <div className="avatar-overlay position-absolute top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center rounded-circle">
+                    <Button 
+                      variant="light" 
+                      size="sm"
+                      className="py-1 px-2"
+                      style={{ fontSize: '0.8rem' }}
+                    >
+                      Change
+                    </Button>
+                  </div>
+                </div>
+
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  style={{ display: 'none' }}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      setPreviewAvatar(file);
+                      setProfileForm({ ...profileForm, avatar: file });
+                    }
+                  }}
+                />
+              </div>
+            </div>
+
+            <Form.Group className="mb-3">
+              <Form.Label>Email</Form.Label>
+              <Form.Control
+                type="email"
+                value={profileForm.email}
+                onChange={(e) => setProfileForm({ ...profileForm, email: e.target.value })}
+                required
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label>Role</Form.Label>
+              <Form.Control
+                type="text"
+                value={user?.role || ''}
+                disabled
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Check
+                type="checkbox"
+                label="Change Password"
+                checked={showPasswordField}
+                onChange={(e) => setShowPasswordField(e.target.checked)}
+              />
+            </Form.Group>
+
+            {showPasswordField && (
+              <Form.Group className="mb-3">
+                <Form.Label>New Password</Form.Label>
+                <Form.Control
+                  type="password"
+                  value={profileForm.password}
+                  onChange={(e) => setProfileForm({ ...profileForm, password: e.target.value })}
+                  required={showPasswordField}
+                />
+              </Form.Group>
+            )}
+
+            {profileError && (
+              <div className="alert alert-danger">{profileError}</div>
+            )}
+
+            <div className="d-flex justify-content-end gap-2">
+              <Button
+                variant="secondary"
+                onClick={() => setShowProfileModal(false)}
+              >
+                Close
+              </Button>
+              <Button
+                type="submit"
+                variant="primary"
+                disabled={updatingProfile}
+              >
+                {updatingProfile ? 'Updating...' : 'Update'}
+              </Button>
+            </div>
+          </Form>
+        </Modal.Body>
+      </Modal>
+
       {/* Toast Notification */}
-      <div className="toast-container position-fixed bottom-0 end-0 p-3">
-        <Toast
-          show={showToast}
-          onClose={() => setShowToast(false)}
-          delay={3000}
-          autohide
-          bg={toastVariant}
-          className="text-white"
-        >
-          <Toast.Header closeButton={false}>
-            <i className={`fas fa-${toastVariant === 'success' ? 'check-circle' : 'exclamation-circle'} me-2`}></i>
-            <strong className="me-auto">
-              {toastVariant === 'success' ? 'Success' : 'Error'}
-            </strong>
-            <button
-              type="button"
-              className="btn-close"
-              onClick={() => setShowToast(false)}
-            ></button>
-          </Toast.Header>
-          <Toast.Body>{toastMessage}</Toast.Body>
-        </Toast>
-      </div>
+      <div
+      style={{
+        position: 'fixed',
+        top: '20px',
+        left: '50%',
+        transform: 'translateX(-50%)',
+        zIndex: 1050,
+        minWidth: '300px'
+      }}
+    >
+      <Toast 
+        show={showToast} 
+        onClose={() => setShowToast(false)}
+        delay={3000}
+        autohide
+        bg={toastVariant}
+        text={toastVariant === 'dark' ? 'white' : 'dark'}
+        className="text-center"
+      >
+        <Toast.Header className="justify-content-between">
+          <strong>
+            {toastVariant === 'success' ? 'Success' : 'Error'}
+          </strong>
+        </Toast.Header>
+        <Toast.Body>{toastMessage}</Toast.Body>
+      </Toast>
+    </div>
     </>
   );
 }

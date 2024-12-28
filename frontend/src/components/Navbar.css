@@ -264,6 +264,7 @@
   align-items: center;
   justify-content: center;
   background-color: #e9ecef;
+  cursor: pointer;
 }
 
 .avatar-img {
@@ -312,4 +313,20 @@
     text-overflow: ellipsis;
     white-space: nowrap;
   }
+}
+
+/* Add these styles to your Navbar.css */
+.avatar-container:hover .avatar-overlay {
+  opacity: 1;
+}
+
+.avatar-container .avatar-overlay {
+  background: rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.avatar-container button {
+  font-size: 0.8rem;
+  padding: 0.25rem 0.5rem;
 }

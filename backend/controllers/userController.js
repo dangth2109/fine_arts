@@ -175,82 +175,13 @@ exports.updateUser = async (req, res) => {
       }
     ).select('-password');
 
-    console.log('3. Update result:', result);
-
-    if (!result) {
-      console.log('No user found with ID:', req.params.id);
-      if (req.file) {
-        console.log('Deleting uploaded file due to user not found');
-        fs.unlinkSync(req.file.path);
-      }
-      return res.status(404).json({
-        success: false,
-        message: 'User not found'
-      });
-    }
-
-    console.log('4. Successfully updated user');
-    res.status(200).json({
-      success: true,
-      data: result,
-      message: 'User updated successfully'
-    });
-
-  } catch (error) {
-    console.error('Update error:', error);
-    if (req.file) {
-      console.log('Deleting uploaded file due to error');
-      fs.unlinkSync(req.file.path);
-    }
-    res.status(400).json({
-      success: false,
-      message: error.message
-    });
-  }
-};
-
-// Delete user
-exports.deleteUser = async (req, res) => {
-  try {
-    // Kiểm tra nếu user đang cố xóa chính mình
-    if (req.user._id.toString() === req.params.id) {
-      return res.status(403).json({
-        success: false,
-        message: 'Không thể xóa tài khoản của chính mình'
-      });
-    }
-
-    const user = await User.findById(req.params.id);
-
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: 'Không tìm thấy người dùng'
-      });
-    }
-
-    // Xóa avatar nếu có
-    if (user.avatar) {
-      const avatarPath = path.join(__dirname, '../../uploads', user.avatar);
-      if (fs.existsSync(avatarPath)) {
         fs.unlinkSync(avatarPath);
       }
     }
-
-    await user.deleteOne();
-
-    res.status(200).json({
-      success: true,
       message: 'Xóa người dùng thành công'
     });
   } catch (error) {
     res.status(500).json({
-      success: false,
-      message: error.message
-    });
-  }
-};
-
 // Get current user info
 exports.getMe = async (req, res) => {
   try {
@@ -321,20 +252,62 @@ exports.updateUser = async (req, res) => {
       req.params.id,
       { $set: req.body },
       { new: true }
-    ).select('-password');
-
-    if (!user) {
+    console.log('Starting update process');
+      if (req.file) {
+        fs.unlinkSync(req.file.path);
+      }
       return res.status(404).json({
         success: false,
         message: 'Không tìm thấy người dùng'
       });
     }
 
+    // Tạo object updateData
+    const updateData = {};
+    if(email) updateData.email = email;
+    if(role) updateData.role = role;
+    if(password) updateData.password = await bcrypt.hash(password, salt);
+
+    // Xử lý avatar nếu có file mới
+    if (req.file) {
+      console.log('Processing new avatar');
+      // Xóa avatar cũ nếu tồn tại
+      if (currentUser.avatar) {
+        const oldAvatarPath = path.join(__dirname, '../../uploads', currentUser.avatar);
+        console.log('Checking old avatar at:', oldAvatarPath);
+        try {
+          if (fs.existsSync(oldAvatarPath)) {
+            fs.unlinkSync(oldAvatarPath);
+            console.log('Old avatar deleted successfully');
+          }
+        } catch (err) {
+          console.error('Error deleting old avatar:', err);
+        }
+      }
+      // Set path mới cho avatar
+      updateData.avatar = `/images/user/${req.file.filename}`;
+      console.log('New avatar path:', updateData.avatar);
+    }
+
+    // Update user với tất cả thông tin mới
+    const updatedUser = await User.findByIdAndUpdate(
+      req.params.id,
+      updateData,
+      { new: true, runValidators: true }
+    ).select('-password');
+
+    console.log('User updated successfully');
+
     res.status(200).json({
       success: true,
-      data: user
+      data: updatedUser
     });
   } catch (error) {
+    console.error('Update error:', error);
+    // Cleanup file mới nếu có lỗi
+    if (req.file) {
+      fs.unlinkSync(req.file.path);
+    }
     res.status(500).json({
       success: false,
       message: error.message
@@ -345,13 +318,33 @@ exports.updateUser = async (req, res) => {
 // Delete user (Admin only)
 exports.deleteUser = async (req, res) => {
   try {
-    const user = await User.findByIdAndDelete(req.params.id);
+    // Kiểm tra nếu user đang cố xóa chính mình
+    if (req.user._id.toString() === req.params.id) {
+      return res.status(403).json({
+        success: false,
+        message: 'Không thể xóa tài khoản của chính mình'
+      });
+    }
+
+    const user = await User.findById(req.params.id);
+
     if (!user) {
       return res.status(404).json({
         success: false,
         message: 'Không tìm thấy người dùng'
       });
     }
+
+    // Xóa avatar nếu có
+    if (user.avatar) {
+      const avatarPath = path.join(__dirname, '../../uploads', user.avatar);
+      if (fs.existsSync(avatarPath)) {
+        fs.unlinkSync(avatarPath);
+      }
+    }
+
+    await user.deleteOne();
+
     res.status(200).json({
       success: true,
       message: 'Xóa người dùng thành công'
@@ -364,6 +357,87 @@ exports.deleteUser = async (req, res) => {
   }
 };
 
+exports.updateCurrentUser = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    
+    if (!user) {
+      if (req.file) fs.unlinkSync(req.file.path);
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Prepare update data
+    const updateData = {};
+    
+    // Update email if provided
+    if (req.body.email) {
+      // Check if email is already taken by another user
+      const emailExists = await User.findOne({ 
+        email: req.body.email,
+        _id: { $ne: user._id }
+      });
+      
+      if (emailExists) {
+        if (req.file) fs.unlinkSync(req.file.path);
+        return res.status(400).json({
+          success: false,
+          message: 'Email already exists'
+        });
+      }
+      updateData.email = req.body.email;
+    }
+
+    // Update password if provided
+    if (req.body.password) {
+      const salt = await bcrypt.genSalt(10);
+      updateData.password = await bcrypt.hash(req.body.password, salt);
+    }
+
+    // Update avatar if provided
+    if (req.file) {
+      // Delete old avatar if exists
+      if (user.avatar && user.avatar.startsWith('/images/')) {
+        const oldPath = path.join(__dirname, '../../uploads', user.avatar);
+        if (fs.existsSync(oldPath)) {
+          fs.unlinkSync(oldPath);
+        }
+      }
+      updateData.avatar = `/images/user/${req.file.filename}`;
+    }
+
+    // Update user
+    const updatedUser = await User.findByIdAndUpdate(
+      user._id,
+      updateData,
+      { new: true }
+    ).select('-password');
+
+    // Generate new token
+    const token = jwt.sign(
+      { userId: updatedUser._id },
+      process.env.JWT_SECRET,
+      { expiresIn: '30d' }
+    );
+
+    res.status(200).json({
+      success: true,
+      data: {
+        user: updatedUser,
+        token
+      }
+    });
+
+  } catch (error) {
+    if (req.file) fs.unlinkSync(req.file.path);
+    res.status(400).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
 // Get current user info
 exports.getMe = async (req, res) => {
   try {

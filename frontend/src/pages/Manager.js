@@ -1,8 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Container, Row, Col, Nav, Table, Badge, Modal, Form, Button, Alert, Toast } from 'react-bootstrap';
 import api from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
+
+const baseURL = (process.env.REACT_APP_API_URL || 'http://localhost:5000/api').replace('/api', '');
 
 function Manager() {
+  const { login } = useAuth();
   const [activeTab, setActiveTab] = useState('users');
   const [users, setUsers] = useState([]);
   const [competitions, setCompetitions] = useState([]);
@@ -58,8 +62,13 @@ function Manager() {
   const [selectedExhibition, setSelectedExhibition] = useState(null);
   const [editExhibitionForm, setEditExhibitionForm] = useState({
     name: '',
+    description: '',
+    location: '',
+    start: '',
+    end: '',
     background: null,
-    artwork: []
+    artwork: [],
+    isHide: false
   });
   const [updatingExhibition, setUpdatingExhibition] = useState(false);
   const [editExhibitionError, setEditExhibitionError] = useState('');
@@ -78,6 +87,23 @@ function Manager() {
   const [showDeleteSubmissionModal, setShowDeleteSubmissionModal] = useState(false);
   const [submissionToDelete, setSubmissionToDelete] = useState(null);
   const [deletingSubmission, setDeletingSubmission] = useState(false);
+  const [showCreateExhibitionModal, setShowCreateExhibitionModal] = useState(false);
+  const [exhibitionForm, setExhibitionForm] = useState({
+    name: '',
+    description: '',
+    location: '',
+    start: '',
+    end: '',
+    background: null
+  });
+  const [creatingExhibition, setCreatingExhibition] = useState(false);
+  const [exhibitionError, setExhibitionError] = useState('');
+  const [showArtworkModal, setShowArtworkModal] = useState(false);
+  const [tempSelectedArtwork, setTempSelectedArtwork] = useState([]);
+  const [modalSubmissions, setModalSubmissions] = useState([]);
+  const [loadingSubmissions, setLoadingSubmissions] = useState(false);
+  const fileInputRef = useRef(null);
+  const [previewAvatar, setPreviewAvatar] = useState(null);
 
   useEffect(() => {
     fetchData(activeTab);
@@ -88,6 +114,26 @@ function Manager() {
       fetchAllSubmissions();
     }
   }, [activeTab]);
+
+  useEffect(() => {
+    if (showArtworkModal && modalSubmissions.length > 0) {
+      const selectedIds = editExhibitionForm.artwork || [];
+      const matchedArtworks = modalSubmissions
+        .filter(item => selectedIds.some(selected => selected._id === item._id))
+        .map(submission => submission._id);
+        
+      console.log('Setting tempSelectedArtwork:', matchedArtworks);
+      setTempSelectedArtwork(matchedArtworks);
+    }
+  }, [showArtworkModal, modalSubmissions, editExhibitionForm.artwork]);
+
+  useEffect(() => {
+    return () => {
+      if (previewAvatar) {
+        URL.revokeObjectURL(URL.createObjectURL(previewAvatar));
+      }
+    };
+  }, [previewAvatar]);
 
   const fetchData = async (tab) => {
     setLoading(true);
@@ -138,6 +184,7 @@ function Manager() {
       role: user.role === 'user' ? 'other' : user.role,
       avatar: null
     });
+    setPreviewAvatar(null);
     setChangePassword(false);
     setShowEditUserModal(true);
   };
@@ -162,19 +209,42 @@ function Manager() {
         formData.append('avatar', editForm.avatar);
       }
 
-      await api.put(`/users/${selectedUser._id}`, formData, {
+      const response = await api.put(`/users/${selectedUser._id}`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
 
       setShowEditUserModal(false);
-      fetchData('users');
-      setToastMessage('User updated successfully!');
-      setToastVariant('success');
+
+      if (response.data.success) {
+        const currentUser = JSON.parse(localStorage.getItem('user'));
+        if (currentUser && currentUser._id === selectedUser._id) {
+          try {
+            const userResponse = await api.get('/users/me');
+            const userData = userResponse.data.data;
+
+            localStorage.setItem('user', JSON.stringify(userData));
+            login(userData);
+          } catch (err) {
+            console.error('Failed to update current user info:', err);
+          }
+        }
+
+        fetchData('users');
+        setToastMessage('User updated successfully!');
+        setToastVariant('success');
+      } else {
+        setToastMessage(response.data.message || 'Failed to update user');
+        setToastVariant('danger');
+      }
       setShowToast(true);
     } catch (err) {
-      setUpdateError(err.response?.data?.message || 'Failed to update user');
+      setShowEditUserModal(false);
+      console.error('Update error:', err);
+      setToastMessage(err.response?.data?.message || 'Failed to update user');
+      setToastVariant('danger');
+      setShowToast(true);
     } finally {
       setUpdating(false);
     }
@@ -195,8 +265,9 @@ function Manager() {
       setToastVariant('success');
       setShowToast(true);
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to delete user');
-      setToastMessage('Failed to delete user');
+      setShowDeleteModal(false);
+      console.error('Delete error:', err);
+      setToastMessage(err.message || 'Failed to delete user');
       setToastVariant('danger');
       setShowToast(true);
     } finally {
@@ -241,7 +312,7 @@ function Manager() {
         background: null
       });
     } catch (err) {
-      setCompetitionError(err.response?.data?.message || 'Failed to create competition');
+      setCompetitionError(err.message || 'Failed to create competition');
     } finally {
       setCreatingCompetition(false);
     }
@@ -323,15 +394,20 @@ function Manager() {
   };
 
   const handleViewCompetition = (competition) => {
-    window.location.href = `/competitions/${competition._id}`;
+    window.open(`/competitions/${competition._id}`, '_blank');
   };
 
   const handleEditExhibition = (exhibition) => {
     setSelectedExhibition(exhibition);
     setEditExhibitionForm({
       name: exhibition.name,
+      description: exhibition.description || '',
+      location: exhibition.location || '',
+      start: exhibition.start.split('T')[0],
+      end: exhibition.end.split('T')[0],
       background: null,
-      artwork: exhibition.artwork || []
+      artwork: exhibition.artwork || [],
+      isHide: exhibition.isHide || false
     });
     setShowEditExhibitionModal(true);
   };
@@ -342,31 +418,30 @@ function Manager() {
     setEditExhibitionError('');
 
     try {
-      if (editExhibitionForm.name !== selectedExhibition.name || editExhibitionForm.background) {
-        const formData = new FormData();
-        if (editExhibitionForm.name !== selectedExhibition.name) {
-          formData.append('name', editExhibitionForm.name);
-        }
-        if (editExhibitionForm.background) {
-          formData.append('background', editExhibitionForm.background);
-        }
-
-        await api.put(`/exhibitions/${selectedExhibition._id}`, formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        });
+      const formData = new FormData();
+      formData.append('name', editExhibitionForm.name);
+      formData.append('description', editExhibitionForm.description);
+      formData.append('location', editExhibitionForm.location);
+      formData.append('start', editExhibitionForm.start);
+      formData.append('end', editExhibitionForm.end);
+      formData.append('isHide', editExhibitionForm.isHide)
+      if (editExhibitionForm.background) {
+        formData.append('background', editExhibitionForm.background);
       }
 
-      if (JSON.stringify(editExhibitionForm.artwork) !== JSON.stringify(selectedExhibition.artwork)) {
-        await api.put(`/exhibitions/${selectedExhibition._id}`, {
-          artwork: editExhibitionForm.artwork
-        }, {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
-      }
+      await api.put(`/exhibitions/${selectedExhibition._id}`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      await api.put(`/exhibitions/${selectedExhibition._id}`, {
+        artwork: editExhibitionForm.artwork
+      }, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
 
       setShowEditExhibitionModal(false);
       fetchData('exhibitions');
@@ -405,7 +480,7 @@ function Manager() {
   };
 
   const handleViewExhibition = (exhibition) => {
-    window.location.href = `/exhibitions/${exhibition._id}`;
+    window.open(`/exhibitions/${exhibition._id}`, '_blank');
   };
 
   const handleEditSubmission = (submission) => {
@@ -463,6 +538,88 @@ function Manager() {
     }
   };
 
+  const handleCreateExhibition = async (e) => {
+    e.preventDefault();
+    setCreatingExhibition(true);
+    setExhibitionError('');
+
+    try {
+      const formData = new FormData();
+      formData.append('name', exhibitionForm.name);
+      formData.append('description', exhibitionForm.description);
+      formData.append('location', exhibitionForm.location);
+      formData.append('start', exhibitionForm.start);
+      formData.append('end', exhibitionForm.end);
+      if (exhibitionForm.background) {
+        formData.append('background', exhibitionForm.background);
+      }
+
+      await api.post('/exhibitions', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      setShowCreateExhibitionModal(false);
+      fetchData('exhibitions');
+      setToastMessage('Exhibition created successfully!');
+      setToastVariant('success');
+      setShowToast(true);
+      
+      setExhibitionForm({
+        name: '',
+        description: '',
+        location: '',
+        start: '',
+        end: '',
+        background: null
+      });
+    } catch (err) {
+      setExhibitionError(err.message || 'Failed to create exhibition');
+    } finally {
+      setCreatingExhibition(false);
+    }
+  };
+
+  const handleOpenArtworkModal = async () => {
+    console.log('Opening artwork modal with:', editExhibitionForm.artwork);
+    setLoadingSubmissions(true);
+    
+    try {
+      const response = await api.get('/submissions?showAll=true');
+      setModalSubmissions(response.data.data);
+      
+      const selectedIds = editExhibitionForm.artwork || [];
+      console.log('selectedIds',selectedIds)
+      console.log('all',response.data.data)
+      const matchedArtworks = response.data.data
+        .filter(item => selectedIds.some(selected => selected._id === item._id))
+        .map(submission => submission._id);
+
+        
+      console.log('Matched artworks:', matchedArtworks);
+      setTempSelectedArtwork(matchedArtworks);
+      setShowArtworkModal(true);
+    } catch (err) {
+      console.error('Failed to fetch submissions:', err);
+      setToastMessage('Failed to load submissions');
+      setToastVariant('danger');
+      setShowToast(true);
+    } finally {
+      setLoadingSubmissions(false);
+    }
+  };
+
+  const handleConfirmArtwork = () => {
+    console.log('Selected artwork:', tempSelectedArtwork);
+    
+    setEditExhibitionForm(prev => ({
+      ...prev,
+      artwork: [...tempSelectedArtwork]
+    }));
+    setShowArtworkModal(false);
+  };
+
   const renderContent = () => {
     if (loading) return <div>Loading...</div>;
     if (error) return <div className="text-danger">{error}</div>;
@@ -516,11 +673,63 @@ function Manager() {
                 setUpdateError('');
                 setChangePassword(false);
               }}
+              centered
             >
               <Modal.Header closeButton>
                 <Modal.Title>Edit User</Modal.Title>
               </Modal.Header>
               <Modal.Body>
+                <div className="text-center mb-4">
+                  <div 
+                    className="avatar-container position-relative mx-auto"
+                    style={{ width: '100px', height: '100px' }}
+                  >
+                    <div 
+                      className="position-relative w-100 h-100"
+                      onClick={() => fileInputRef.current?.click()}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      <img
+                        src={
+                          previewAvatar 
+                            ? URL.createObjectURL(previewAvatar)
+                            : selectedUser?.avatar 
+                              ? `${baseURL}${selectedUser.avatar}`
+                              : 'https://via.placeholder.com/100'
+                        }
+                        alt="Avatar"
+                        className="rounded-circle w-100 h-100"
+                        style={{ objectFit: 'cover' }}
+                      />
+                      
+                      <div className="avatar-overlay position-absolute top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center rounded-circle">
+                        <Button 
+                          variant="light" 
+                          size="sm"
+                          className="py-1 px-2"
+                          style={{ fontSize: '0.8rem' }}
+                        >
+                          Change
+                        </Button>
+                      </div>
+                    </div>
+
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      style={{ display: 'none' }}
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          setPreviewAvatar(file);
+                          setEditForm(prev => ({ ...prev, avatar: file }));
+                        }
+                      }}
+                    />
+                  </div>
+                </div>
+
                 <Form onSubmit={handleUpdateUser}>
                   {updateError && (
                     <Alert variant="danger" className="mb-3">
@@ -533,7 +742,7 @@ function Manager() {
                     <Form.Control
                       type="email"
                       value={editForm.email}
-                      onChange={(e) => setEditForm(prev => ({...prev, email: e.target.value}))}
+                      onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
                       required
                     />
                   </Form.Group>
@@ -542,12 +751,12 @@ function Manager() {
                     <Form.Label>Role</Form.Label>
                     <Form.Select
                       value={editForm.role}
-                      onChange={(e) => setEditForm(prev => ({...prev, role: e.target.value}))}
+                      onChange={(e) => setEditForm({ ...editForm, role: e.target.value })}
                       required
                     >
                       <option value="admin">Admin</option>
-                      <option value="staff">Staff</option>
                       <option value="manager">Manager</option>
+                      <option value="staff">Staff</option>
                       <option value="student">Student</option>
                       <option value="other">Other</option>
                     </Form.Select>
@@ -568,36 +777,17 @@ function Manager() {
                       <Form.Control
                         type="password"
                         value={editForm.password}
-                        onChange={(e) => setEditForm(prev => ({...prev, password: e.target.value}))}
+                        onChange={(e) => setEditForm({ ...editForm, password: e.target.value })}
                         required={changePassword}
                       />
                     </Form.Group>
                   )}
 
-                  <Form.Group className="mb-3">
-                    <Form.Label>Avatar</Form.Label>
-                    <Form.Control
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => setEditForm(prev => ({...prev, avatar: e.target.files[0]}))}
-                    />
-                    <Form.Text className="text-muted">
-                      Leave empty to keep current avatar
-                    </Form.Text>
-                  </Form.Group>
-
                   <div className="d-flex justify-content-end gap-2">
-                    <Button 
-                      variant="secondary" 
-                      onClick={() => setShowEditUserModal(false)}
-                    >
-                      Close
+                    <Button variant="secondary" onClick={() => setShowEditUserModal(false)}>
+                      Cancel
                     </Button>
-                    <Button 
-                      type="submit"
-                      variant="primary"
-                      disabled={updating}
-                    >
+                    <Button type="submit" variant="primary" disabled={updating}>
                       {updating ? 'Updating...' : 'Update'}
                     </Button>
                   </div>
@@ -972,12 +1162,25 @@ function Manager() {
       case 'exhibitions':
         return (
           <>
+            <div className="mb-3">
+              <Button 
+                variant="primary"
+                onClick={() => setShowCreateExhibitionModal(true)}
+              >
+                <i className="bi bi-plus-circle me-2"></i>
+                Create New Exhibition
+              </Button>
+            </div>
+
             <Table striped bordered hover>
               <thead>
                 <tr>
                   <th>#</th>
                   <th>Name</th>
                   <th>Location</th>
+                  <th>Start Date</th>
+                  <th>End Date</th>
+                  <th>Visibility</th>
                   <th>Artwork Count</th>
                   <th>Actions</th>
                 </tr>
@@ -988,6 +1191,13 @@ function Manager() {
                     <td>{index + 1}</td>
                     <td>{exhibition.name}</td>
                     <td>{exhibition.location}</td>
+                    <td>{new Date(exhibition.start).toLocaleDateString()}</td>
+                    <td>{new Date(exhibition.end).toLocaleDateString()}</td>
+                    <td>
+                      <Badge bg={exhibition.isHide ? 'secondary' : 'info'}>
+                        {exhibition.isHide ? 'Hidden' : 'Visible'}
+                      </Badge>
+                    </td>
                     <td>{exhibition.artwork?.length || 0}</td>
                     <td>
                       <i 
@@ -1036,8 +1246,55 @@ function Manager() {
                       type="text"
                       value={editExhibitionForm.name}
                       onChange={(e) => setEditExhibitionForm(prev => ({...prev, name: e.target.value}))}
+                      required
                     />
                   </Form.Group>
+
+                  <Form.Group className="mb-3">
+                    <Form.Label>Description</Form.Label>
+                    <Form.Control
+                      as="textarea"
+                      rows={3}
+                      value={editExhibitionForm.description}
+                      onChange={(e) => setEditExhibitionForm(prev => ({...prev, description: e.target.value}))}
+                      required
+                    />
+                  </Form.Group>
+
+                  <Form.Group className="mb-3">
+                    <Form.Label>Location</Form.Label>
+                    <Form.Control
+                      type="text"
+                      value={editExhibitionForm.location}
+                      onChange={(e) => setEditExhibitionForm(prev => ({...prev, location: e.target.value}))}
+                      required
+                    />
+                  </Form.Group>
+
+                  <Row>
+                    <Col md={6}>
+                      <Form.Group className="mb-3">
+                        <Form.Label>Start Date</Form.Label>
+                        <Form.Control
+                          type="date"
+                          value={editExhibitionForm.start}
+                          onChange={(e) => setEditExhibitionForm(prev => ({...prev, start: e.target.value}))}
+                          required
+                        />
+                      </Form.Group>
+                    </Col>
+                    <Col md={6}>
+                      <Form.Group className="mb-3">
+                        <Form.Label>End Date</Form.Label>
+                        <Form.Control
+                          type="date"
+                          value={editExhibitionForm.end}
+                          onChange={(e) => setEditExhibitionForm(prev => ({...prev, end: e.target.value}))}
+                          required
+                        />
+                      </Form.Group>
+                    </Col>
+                  </Row>
 
                   <Form.Group className="mb-3">
                     <Form.Label>Background Image</Form.Label>
@@ -1052,28 +1309,27 @@ function Manager() {
                   </Form.Group>
 
                   <Form.Group className="mb-3">
+                    <Form.Check
+                      type="checkbox"
+                      label="Hide Exhibition"
+                      checked={editExhibitionForm.isHide}
+                      onChange={(e) => setEditExhibitionForm(prev => ({...prev, isHide: e.target.checked}))}
+                    />
+                  </Form.Group>
+
+                  <Form.Group className="mb-3">
                     <Form.Label>Artwork Submissions</Form.Label>
-                    <Form.Select 
-                      multiple
-                      value={editExhibitionForm.artwork}
-                      onChange={(e) => {
-                        const selectedOptions = Array.from(e.target.selectedOptions, option => option.value);
-                        setEditExhibitionForm(prev => ({...prev, artwork: selectedOptions}));
-                      }}
-                      style={{ height: '200px' }}
-                    >
-                      {allSubmissions.map(submission => (
-                        <option 
-                          key={submission._id} 
-                          value={submission._id}
-                        >
-                          {`${submission.competitionId.name} - ${submission.author}`}
-                        </option>
-                      ))}
-                    </Form.Select>
-                    <Form.Text className="text-muted">
-                      Hold Ctrl (Windows) or Command (Mac) to select multiple artworks
-                    </Form.Text>
+                    <div className="d-flex align-items-center gap-3">
+                      <div className="border rounded px-3 py-2 flex-grow-1">
+                        {editExhibitionForm.artwork.length} artwork(s) selected
+                      </div>
+                      <Button 
+                        variant="outline-primary"
+                        onClick={handleOpenArtworkModal}
+                      >
+                        Change
+                      </Button>
+                    </div>
                   </Form.Group>
 
                   <div className="d-flex justify-content-end gap-2">
@@ -1122,6 +1378,193 @@ function Manager() {
                 >
                   {deletingExhibition ? 'Deleting...' : 'Delete'}
                 </Button>
+              </Modal.Footer>
+            </Modal>
+
+            <Modal 
+              show={showCreateExhibitionModal} 
+              onHide={() => {
+                setShowCreateExhibitionModal(false);
+                setExhibitionError('');
+              }}
+              size="lg"
+            >
+              <Modal.Header closeButton>
+                <Modal.Title>Create New Exhibition</Modal.Title>
+              </Modal.Header>
+              <Modal.Body>
+                <Form onSubmit={handleCreateExhibition}>
+                  {exhibitionError && (
+                    <Alert variant="danger" className="mb-3">
+                      {exhibitionError}
+                    </Alert>
+                  )}
+
+                  <Form.Group className="mb-3">
+                    <Form.Label>Name</Form.Label>
+                    <Form.Control
+                      type="text"
+                      value={exhibitionForm.name}
+                      onChange={(e) => setExhibitionForm(prev => ({...prev, name: e.target.value}))}
+                      required
+                    />
+                  </Form.Group>
+
+                  <Form.Group className="mb-3">
+                    <Form.Label>Description</Form.Label>
+                    <Form.Control
+                      as="textarea"
+                      rows={3}
+                      value={exhibitionForm.description}
+                      onChange={(e) => setExhibitionForm(prev => ({...prev, description: e.target.value}))}
+                      required
+                    />
+                  </Form.Group>
+
+                  <Form.Group className="mb-3">
+                    <Form.Label>Location</Form.Label>
+                    <Form.Control
+                      type="text"
+                      value={exhibitionForm.location}
+                      onChange={(e) => setExhibitionForm(prev => ({...prev, location: e.target.value}))}
+                      required
+                    />
+                  </Form.Group>
+
+                  <Row>
+                    <Col md={6}>
+                      <Form.Group className="mb-3">
+                        <Form.Label>Start Date</Form.Label>
+                        <Form.Control
+                          type="date"
+                          value={exhibitionForm.start}
+                          onChange={(e) => setExhibitionForm(prev => ({...prev, start: e.target.value}))}
+                          required
+                        />
+                      </Form.Group>
+                    </Col>
+                    <Col md={6}>
+                      <Form.Group className="mb-3">
+                        <Form.Label>End Date</Form.Label>
+                        <Form.Control
+                          type="date"
+                          value={exhibitionForm.end}
+                          onChange={(e) => setExhibitionForm(prev => ({...prev, end: e.target.value}))}
+                          required
+                        />
+                      </Form.Group>
+                    </Col>
+                  </Row>
+
+                  <Form.Group className="mb-3">
+                    <Form.Label>Background Image</Form.Label>
+                    <Form.Control
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => setExhibitionForm(prev => ({...prev, background: e.target.files[0]}))}
+                      required
+                    />
+                  </Form.Group>
+
+                  <div className="d-flex justify-content-end gap-2">
+                    <Button 
+                      variant="secondary" 
+                      onClick={() => setShowCreateExhibitionModal(false)}
+                    >
+                      Cancel
+                    </Button>
+                    <Button 
+                      type="submit"
+                      variant="primary"
+                      disabled={creatingExhibition}
+                    >
+                      {creatingExhibition ? 'Creating...' : 'Create Exhibition'}
+                    </Button>
+                  </div>
+                </Form>
+              </Modal.Body>
+            </Modal>
+
+            <Modal 
+              show={showArtworkModal} 
+              onHide={() => setShowArtworkModal(false)}
+              size="lg"
+              className="artwork-selection-modal"
+            >
+              <Modal.Header closeButton>
+                <Modal.Title>Select Artworks</Modal.Title>
+              </Modal.Header>
+              <Modal.Body style={{ maxHeight: '70vh', overflowY: 'auto' }}>
+                {loadingSubmissions ? (
+                  <div className="text-center py-4">
+                    <div className="spinner-border text-primary" role="status">
+                      <span className="visually-hidden">Loading...</span>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="row g-3">
+                    {modalSubmissions.map(submission => (
+                      <div key={submission._id} className="col-md-4 col-sm-6">
+                        <div 
+                          className={`card h-100 ${tempSelectedArtwork.includes(submission._id) ? 'border-primary' : ''}`}
+                          style={{ cursor: 'pointer' }}
+                          onClick={() => {
+                            setTempSelectedArtwork(prev => 
+                              prev.includes(submission._id)
+                                ? prev.filter(id => id !== submission._id)
+                                : [...prev, submission._id]
+                            );
+                          }}
+                        >
+                          <img 
+                            src={`${baseURL}${submission.image}`} 
+                            className="card-img-top"
+                            alt={submission.author}
+                            style={{ height: '150px', objectFit: 'cover' }}
+                          />
+                          <div className="card-body">
+                            <h6 className="card-title mb-1">{submission.author}</h6>
+                            <div className="d-flex justify-content-between align-items-center mb-1">
+                              <small className="text-muted">
+                                {submission.competitionId?.name || 'Unknown Competition'}
+                              </small>
+                              <Badge bg={submission.score ? 'success' : 'secondary'}>
+                                {submission.score ? `Score: ${submission.score}` : 'Not scored'}
+                              </Badge>
+                            </div>
+                            {tempSelectedArtwork.includes(submission._id) && (
+                              <div className="position-absolute top-0 end-0 p-2">
+                                <Badge bg="primary">
+                                  <i className="bi bi-check-lg"></i>
+                                </Badge>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </Modal.Body>
+              <Modal.Footer>
+                <div className="d-flex justify-content-between w-100">
+                  <span>{tempSelectedArtwork.length} artwork(s) selected</span>
+                  <div>
+                    <Button 
+                      variant="secondary" 
+                      onClick={() => setShowArtworkModal(false)}
+                      className="me-2"
+                    >
+                      Cancel
+                    </Button>
+                    <Button 
+                      variant="primary" 
+                      onClick={handleConfirmArtwork}
+                    >
+                      Confirm
+                    </Button>
+                  </div>
+                </div>
               </Modal.Footer>
             </Modal>
           </>

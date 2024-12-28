@@ -144,7 +144,7 @@ exports.updateExhibition = async (req, res) => {
     if (name) updateData.name = name;
     if (description) updateData.description = description;
     if (location) updateData.location = location;
-    if (typeof isHide === 'boolean') updateData.isHide = isHide;
+    if (isHide) updateData.isHide = isHide;
 
     if (req.file) {
       if (exhibition.background && exhibition.background.startsWith('/images/')) {
@@ -219,7 +219,8 @@ exports.updateExhibition = async (req, res) => {
 
       updateData.artwork = submissions.map(sub => ({
         image: sub.image,
-        author: sub.author
+        author: sub.author,
+        _id: sub._id
       }));
       updateData.totalSubmissions = submissions.length;
     }
