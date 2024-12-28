@@ -34,6 +34,10 @@ const exhibitionSchema = new mongoose.Schema({
     }],
     default: []
   },
+  isHide: {
+    type: Boolean,
+    default: false
+  },
   totalSubmissions: {
     type: Number,
     default: 0

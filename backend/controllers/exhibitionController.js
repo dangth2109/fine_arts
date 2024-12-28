@@ -10,13 +10,14 @@ const path = require('path');
 exports.getAllExhibitions = async (req, res) => {
   try {
     const exhibitions = await Exhibition.find()
-      .select('name description location background start end artwork totalSubmissions')
+      .select('name description location background start end artwork totalSubmissions isHide')
       .sort({ createdAt: -1 });
     
     res.status(200).json({
       success: true,
       count: exhibitions.length,
       data: exhibitions
+      // data: []
     });
   } catch (error) {
     res.status(500).json({
@@ -33,7 +34,7 @@ exports.getAllExhibitions = async (req, res) => {
 exports.getExhibition = async (req, res) => {
   try {
     const exhibition = await Exhibition.findById(req.params.id)
-      .select('name description location background start end artwork totalSubmissions');
+      .select('name description location background start end artwork totalSubmissions isHide');
     
     if (!exhibition) {
       return res.status(404).json({
@@ -128,7 +129,7 @@ exports.createExhibition = async (req, res) => {
  */
 exports.updateExhibition = async (req, res) => {
   try {
-    const { name, description, location, start, end, artwork } = req.body;
+    const { name, description, location, start, end, artwork, isHide } = req.body;
     const exhibition = await Exhibition.findById(req.params.id);
 
     if (!exhibition) {
@@ -143,6 +144,7 @@ exports.updateExhibition = async (req, res) => {
     if (name) updateData.name = name;
     if (description) updateData.description = description;
     if (location) updateData.location = location;
+    if (typeof isHide === 'boolean') updateData.isHide = isHide;
 
     if (req.file) {
       if (exhibition.background && exhibition.background.startsWith('/images/')) {

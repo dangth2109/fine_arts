@@ -10,13 +10,14 @@ const path = require('path');
 exports.getAllCompetitions = async (req, res) => {
   try {
     const competitions = await Competition.find()
-      .select('name description background start end totalSubmissions')
+      .select('name description background start end totalSubmissions isHide awards')
       .sort({ createdAt: -1 });
 
     res.status(200).json({
       success: true,
       count: competitions.length,
       data: competitions
+      // data: []
     });
   } catch (error) {
     res.status(500).json({
@@ -33,7 +34,7 @@ exports.getAllCompetitions = async (req, res) => {
 exports.getCompetition = async (req, res) => {
   try {
     const competition = await Competition.findById(req.params.id)
-      .select('name description background start end totalSubmissions winners awards');
+      .select('name description background start end totalSubmissions winners awards isHide');
 
     if (!competition) {
       return res.status(404).json({
@@ -127,7 +128,7 @@ exports.createCompetition = async (req, res) => {
  */
 exports.updateCompetition = async (req, res) => {
   try {
-    const { name, description, start, end } = req.body;
+    const { name, description, start, end, isHide, awards } = req.body;
     const competition = await Competition.findById(req.params.id);
 
     if (!competition) {
@@ -141,6 +142,8 @@ exports.updateCompetition = async (req, res) => {
     const updateData = {};
     if (name) updateData.name = name;
     if (description) updateData.description = description;
+    if (isHide) updateData.isHide = isHide;
+    if (awards) updateData.awards = awards;
 
     if (req.file) {
       if (competition.background && competition.background.startsWith('/images/')) {

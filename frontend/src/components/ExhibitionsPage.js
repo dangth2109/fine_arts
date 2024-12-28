@@ -13,7 +13,7 @@ function ExhibitionsPage() {
     const fetchExhibitions = async () => {
       try {
         const response = await api.get('/exhibitions');
-        setExhibitions(response.data.data);
+        setExhibitions(response.data.data.filter(comp => !comp.isHide));
       } catch (error) {
         console.error('Error fetching exhibitions:', error);
       } finally {

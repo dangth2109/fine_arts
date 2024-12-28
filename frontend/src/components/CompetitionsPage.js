@@ -13,7 +13,7 @@ function CompetitionsPage() {
     const fetchCompetitions = async () => {
       try {
         const response = await api.get('/competitions');
-        setCompetitions(response.data.data);
+        setCompetitions(response.data.data.filter(comp => !comp.isHide));
       } catch (error) {
         console.error('Error fetching competitions:', error);
       } finally {

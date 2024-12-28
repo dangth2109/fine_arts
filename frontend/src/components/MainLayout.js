@@ -22,8 +22,8 @@ function MainLayout() {
           api.get('/exhibitions'),
           api.get('/competitions')
         ]);
-        setExhibitions(exhibitionsRes.data.data);
-        setCompetitions(competitionsRes.data.data);
+        setExhibitions(exhibitionsRes.data.data.filter(comp => !comp.isHide));
+        setCompetitions(competitionsRes.data.data.filter(comp => !comp.isHide));
       } catch (error) {
         console.error('Error fetching data:', error);
       } finally {
@@ -83,50 +83,56 @@ function MainLayout() {
 
         <Row className="mb-5">
           <Col>
-            <Carousel 
-              interval={5000} 
-              indicators={true} 
-              controls={false}
-              className="custom-carousel"
-            >
-              {chunkArrayWithPadding(exhibitions, ITEMS_PER_SLIDE).map((group, idx) => (
-                <Carousel.Item key={idx}>
-                  <div className="d-flex justify-content-between">
-                    {group.map((exhibition, index) => (
-                      <Link 
-                        to={`/exhibitions/${exhibition._id}`}
-                        key={`${exhibition._id}-${index}`}
-                        className="text-decoration-none"
-                        style={{ width: ITEM_WIDTH }}
-                      >
-                        <Card className="h-100 shadow-sm">
-                          <div className="card-img-wrapper">
-                            <Card.Img 
-                              variant="top" 
-                              src={`${baseURL}${exhibition.background}`}
-                              alt={exhibition.name}
-                              className="card-img"
-                            />
-                          </div>
-                          <Card.Body className="d-flex flex-column">
-                            <Card.Title className="text-truncate fw-bold">{exhibition.name}</Card.Title>
-                            <Card.Text className="description flex-grow-1">
-                              {exhibition.description}
-                            </Card.Text>
-                            <div className="mt-auto">
-                              <small className="text-muted d-flex align-items-center">
-                                <i className="bi bi-geo-alt me-2"></i>
-                                {exhibition.location}
-                              </small>
+            {exhibitions.length > 0 ? (
+              <Carousel 
+                interval={5000} 
+                indicators={true} 
+                controls={false}
+                className="custom-carousel"
+              >
+                {chunkArrayWithPadding(exhibitions, ITEMS_PER_SLIDE).map((group, idx) => (
+                  <Carousel.Item key={idx}>
+                    <div className="d-flex justify-content-between">
+                      {group.map((exhibition, index) => (
+                        <Link 
+                          to={`/exhibitions/${exhibition._id}`}
+                          key={`${exhibition._id}-${index}`}
+                          className="text-decoration-none"
+                          style={{ width: ITEM_WIDTH }}
+                        >
+                          <Card className="h-100 shadow-sm">
+                            <div className="card-img-wrapper">
+                              <Card.Img 
+                                variant="top" 
+                                src={`${baseURL}${exhibition.background}`}
+                                alt={exhibition.name}
+                                className="card-img"
+                              />
                             </div>
-                          </Card.Body>
-                        </Card>
-                      </Link>
-                    ))}
-                  </div>
-                </Carousel.Item>
-              ))}
-            </Carousel>
+                            <Card.Body className="d-flex flex-column">
+                              <Card.Title className="text-truncate fw-bold">{exhibition.name}</Card.Title>
+                              <Card.Text className="description flex-grow-1">
+                                {exhibition.description}
+                              </Card.Text>
+                              <div className="mt-auto">
+                                <small className="text-muted d-flex align-items-center">
+                                  <i className="bi bi-geo-alt me-2"></i>
+                                  {exhibition.location}
+                                </small>
+                              </div>
+                            </Card.Body>
+                          </Card>
+                        </Link>
+                      ))}
+                    </div>
+                  </Carousel.Item>
+                ))}
+              </Carousel>
+            ) : (
+              <div className="text-center py-5">
+                <p className="text-muted">No exhibitions available at the moment.</p>
+              </div>
+            )}
           </Col>
         </Row>
 
@@ -151,50 +157,56 @@ function MainLayout() {
 
         <Row>
           <Col>
-            <Carousel 
-              interval={5000} 
-              indicators={true} 
-              controls={false}
-              className="custom-carousel"
-            >
-              {chunkArrayWithPadding(competitions, ITEMS_PER_SLIDE).map((group, idx) => (
-                <Carousel.Item key={idx}>
-                  <div className="d-flex justify-content-between">
-                    {group.map((competition, index) => (
-                      <Link 
-                        to={`/competitions/${competition._id}`}
-                        key={`${competition._id}-${index}`}
-                        className="text-decoration-none"
-                        style={{ width: ITEM_WIDTH }}
-                      >
-                        <Card className="h-100 shadow-sm">
-                          <div className="card-img-wrapper">
-                            <Card.Img 
-                              variant="top" 
-                              src={`${baseURL}${competition.background}`}
-                              alt={competition.name}
-                              className="card-img"
-                            />
-                          </div>
-                          <Card.Body className="d-flex flex-column">
-                            <Card.Title className="text-truncate fw-bold">{competition.name}</Card.Title>
-                            <Card.Text className="description flex-grow-1">
-                              {competition.description}
-                            </Card.Text>
-                            <div className="mt-auto">
-                              <small className="text-muted d-flex align-items-center">
-                                <i className="bi bi-calendar me-2"></i>
-                                Deadline: {new Date(competition.end).toLocaleDateString()}
-                              </small>
+            {competitions.length > 0 ? (
+              <Carousel 
+                interval={5000} 
+                indicators={true} 
+                controls={false}
+                className="custom-carousel"
+              >
+                {chunkArrayWithPadding(competitions, ITEMS_PER_SLIDE).map((group, idx) => (
+                  <Carousel.Item key={idx}>
+                    <div className="d-flex justify-content-between">
+                      {group.map((competition, index) => (
+                        <Link 
+                          to={`/competitions/${competition._id}`}
+                          key={`${competition._id}-${index}`}
+                          className="text-decoration-none"
+                          style={{ width: ITEM_WIDTH }}
+                        >
+                          <Card className="h-100 shadow-sm">
+                            <div className="card-img-wrapper">
+                              <Card.Img 
+                                variant="top" 
+                                src={`${baseURL}${competition.background}`}
+                                alt={competition.name}
+                                className="card-img"
+                              />
                             </div>
-                          </Card.Body>
-                        </Card>
-                      </Link>
-                    ))}
-                  </div>
-                </Carousel.Item>
-              ))}
-            </Carousel>
+                            <Card.Body className="d-flex flex-column">
+                              <Card.Title className="text-truncate fw-bold">{competition.name}</Card.Title>
+                              <Card.Text className="description flex-grow-1">
+                                {competition.description}
+                              </Card.Text>
+                              <div className="mt-auto">
+                                <small className="text-muted d-flex align-items-center">
+                                  <i className="bi bi-calendar me-2"></i>
+                                  Deadline: {new Date(competition.end).toLocaleDateString()}
+                                </small>
+                              </div>
+                            </Card.Body>
+                          </Card>
+                        </Link>
+                      ))}
+                    </div>
+                  </Carousel.Item>
+                ))}
+              </Carousel>
+            ) : (
+              <div className="text-center py-5">
+                <p className="text-muted">No competitions available at the moment.</p>
+              </div>
+            )}
           </Col>
         </Row>
       </Container>
