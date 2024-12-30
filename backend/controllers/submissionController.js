@@ -2,6 +2,7 @@ const Submission = require('../models/Submission');
 const Competition = require('../models/Competition');
 const fs = require('fs');
 const path = require('path');
+const { runCronManually } = require('../utils/cronJobs');
 
 /**
  * Create a new submission for a competition
@@ -22,7 +23,7 @@ exports.createSubmission = async (req, res) => {
     }
 
     const now = new Date();
-    if (now < new Date(competition.start) || now > new Date(competition.end)) {
+    if (now > new Date(competition.end)) {
       if (req.file) fs.unlinkSync(req.file.path);
       return res.status(400).json({
         success: false,
@@ -78,7 +79,7 @@ exports.getAllSubmissions = async (req, res) => {
     const { competitionId } = req.query;
     const query = competitionId ? { competitionId } : {};
 
-    if (req.user.role !== 'admin') {
+    if (req.user.role !== 'admin' && req.user.role !== 'manager' && req.user.role !== 'staff') {
       query.author = req.user.email;
     }
 
@@ -152,13 +153,26 @@ exports.updateSubmission = async (req, res) => {
 
     const submission = await Submission.findByIdAndUpdate(
       req.params.id,
-      { 
+      {
         score,
         scoredBy: req.user.email,
         scoredAt: new Date()
       },
       { new: true, runValidators: true }
     );
+
+    if (score) {
+      await Competition.findByIdAndUpdate(
+        submission.competitionId,
+        {
+          $set: {
+            winners: [],
+            isProcessed: false
+          }
+        }
+      );
+      await runCronManually();
+    }
 
     if (!submission) {
       return res.status(404).json({

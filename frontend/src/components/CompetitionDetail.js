@@ -33,9 +33,9 @@ function CompetitionDetail() {
       return { text: 'Ended', color: 'danger' };
     }
     if (now < startDate) {
-      return { text: 'Upcoming', color: 'warning' };
+      return { text: 'Upcoming', color: 'info' };
     }
-    return { text: 'Ongoing', color: 'success' };
+    return { text: 'In Progress', color: 'success' };
   };
 
   useEffect(() => {
@@ -94,10 +94,15 @@ function CompetitionDetail() {
         scoredAt: new Date().toISOString()
       });
 
+      if (new Date(competition.end) <= new Date()) { 
+        const {data } = await api.get(`/competitions/${id}`)
+        setCompetition(data.data)
+      }
+
       setScore('');
     } catch (error) {
       console.error('Error scoring submission:', error);
-      setScoreError('Failed to submit score. Please try again.');
+      setScoreError(error.message);
     } finally {
       setScoring(false);
     }
@@ -276,6 +281,10 @@ function CompetitionDetail() {
               <div className="winner-image-container">
                 <img
                   src={`${baseURL}${selectedWinner.image}`}
+                  onError={(e) => {
+                    e.target.onerror = null;
+                      e.target.src = `${baseURL}/images/submissions/default-image.jpg`;
+                  }}
                   alt={`Submission by ${selectedWinner.email}`}
                   className="winner-submission-image"
                 />
@@ -392,8 +401,8 @@ function CompetitionDetail() {
               </div>
             </Modal.Body>
 
-            {/* Chỉ hiển thị scoring panel cho admin */}
-            {user?.role === 'admin' && (
+            {/* Only show for admin, manager, staff */}
+            {['admin', 'manager', 'staff'].includes(user?.role) && (
               <div className="scoring-panel">
                 <Form className="d-flex align-items-center p-3">
                   <Form.Group className="score-input-group me-3 mb-0 flex-grow-1">

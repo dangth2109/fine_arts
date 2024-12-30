@@ -63,7 +63,7 @@ REACT_APP_API_URL=http://localhost:3000/api
 
 #### Import Database
 Create database with `MONGODB_URI` value in `.env` file.
-Using `database` folder to import database.
+Select 'y' or 'Y' when start server to create seed database ('n' or 'N' to create empty database)
 
 #### Setup Images
 Images are in `uploads/images` folder.

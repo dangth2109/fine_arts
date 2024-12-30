@@ -168,6 +168,7 @@ exports.updateCompetition = async (req, res) => {
     }
 
     if (end) {
+      const currentDate = new Date();
       const endDate = new Date(end);
       if (isNaN(endDate.getTime()) || !/^\d{4}-\d{2}-\d{2}$/.test(end)) {
         if (req.file) fs.unlinkSync(req.file.path);
@@ -175,6 +176,10 @@ exports.updateCompetition = async (req, res) => {
           success: false,
           message: 'Invalid end date format. Use YYYY-MM-DD'
         });
+      }
+      if (currentDate < endDate) {
+        updateData.winners = [];
+        updateData.isProcessed = false;
       }
       updateData.end = endDate;
     }

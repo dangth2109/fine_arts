@@ -73,9 +73,9 @@ router.get('/', getAllCompetitions);
 router.get('/:id', getCompetition);
 
 // Protected routes (admin only)
-router.post('/', protect, authorize('admin'), uploadMiddleware, createCompetition);
-router.put('/:id', protect, authorize('admin'), uploadMiddleware, updateCompetition);
-router.delete('/:id', protect, authorize('admin'), deleteCompetition);
-router.post('/process-winners', protect, authorize('admin'), processWinners);
+router.post('/', protect, authorize('admin', 'manager'), uploadMiddleware, createCompetition);
+router.put('/:id', protect, authorize('admin', 'manager'), uploadMiddleware, updateCompetition);
+router.delete('/:id', protect, authorize('admin', 'manager'), deleteCompetition);
+router.post('/process-winners', protect, authorize('admin', 'manager'), processWinners);
 
 module.exports = router;

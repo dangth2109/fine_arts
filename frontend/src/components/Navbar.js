@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Navbar, Container, Nav, NavDropdown, Button, Modal, Form, Toast } from 'react-bootstrap';
+import { Navbar, Container, Nav, NavDropdown, Button, Modal, Form, Toast, Card, Badge, Spinner } from 'react-bootstrap';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../services/api';
@@ -243,7 +243,7 @@ function AppNavbar() {
     setToastMessage('Logged out successfully!');
     setToastVariant('success');
     setShowToast(true);
-    
+
     if (location.pathname.includes('/manager')) {
       navigate('/');
     }
@@ -256,11 +256,11 @@ function AppNavbar() {
 
     const formData = new FormData();
     formData.append('email', profileForm.email);
-    
+
     if (showPasswordField && profileForm.password) {
       formData.append('password', profileForm.password);
     }
-    
+
     if (profileForm.avatar) {
       formData.append('avatar', profileForm.avatar);
     }
@@ -298,6 +298,29 @@ function AppNavbar() {
     } finally {
       setUpdatingProfile(false);
     }
+  };
+
+  const [showMySubmissionsModal, setShowMySubmissionsModal] = useState(false);
+  const [mySubmissions, setMySubmissions] = useState([]);
+  const [loadingMySubmissions, setLoadingMySubmissions] = useState(false);
+
+  const fetchMySubmissions = async () => {
+    setLoadingMySubmissions(true);
+    try {
+      const response = await api.get('/submissions');
+      setMySubmissions(response.data.data);
+    } catch (err) {
+      setToastMessage('Failed to load submissions');
+      setToastVariant('danger');
+      setShowToast(true);
+    } finally {
+      setLoadingMySubmissions(false);
+    }
+  };
+
+  const handleOpenMySubmissions = () => {
+    setShowMySubmissionsModal(true);
+    fetchMySubmissions();
   };
 
   return (
@@ -346,7 +369,7 @@ function AppNavbar() {
                             src={`${process.env.REACT_APP_API_URL.replace('/api', '')}${user.avatar}`}
                             onError={(e) => {
                               e.target.onerror = null;
-                                e.target.src = `${process.env.REACT_APP_API_URL.replace('/api', '')}/images/user/default-avatar.png`;
+                              e.target.src = `${process.env.REACT_APP_API_URL.replace('/api', '')}/images/user/default-avatar.png`;
                             }}
                             alt="User Avatar"
                             className="avatar-img"
@@ -362,10 +385,16 @@ function AppNavbar() {
                   align="end"
                   className="user-dropdown"
                 >
-                  {user.role === 'admin' && (
+                  {['admin', 'manager', 'staff'].includes(user.role) && (
                     <NavDropdown.Item as={Link} to="/manager">
                       <i className="fas fa-cogs me-2"></i>
                       Management
+                    </NavDropdown.Item>
+                  )}
+                  {user.role === 'student' && (
+                    <NavDropdown.Item onClick={handleOpenMySubmissions}>
+                      <i className="fas fa-images me-2"></i>
+                      My submissions
                     </NavDropdown.Item>
                   )}
                   <NavDropdown.Item onClick={() => setShowSubmitModal(true)}>
@@ -615,35 +644,35 @@ function AppNavbar() {
         <Modal.Body>
           <Form onSubmit={handleUpdateProfile}>
             <div className="text-center mb-3">
-              <div 
+              <div
                 className="avatar-container position-relative mx-auto"
                 style={{ width: '100px', height: '100px' }}
               >
-                <div 
+                <div
                   className="position-relative w-100 h-100"
                   onClick={() => fileInputRef.current?.click()}
                   style={{ cursor: 'pointer' }}
                 >
                   <img
                     src={
-                      previewAvatar 
+                      previewAvatar
                         ? URL.createObjectURL(previewAvatar)
-                        : user?.avatar 
+                        : user?.avatar
                           ? `${process.env.REACT_APP_API_URL.replace('/api', '')}${user.avatar}`
                           : 'https://via.placeholder.com/100'
                     }
                     onError={(e) => {
                       e.target.onerror = null;
-                        e.target.src = `${process.env.REACT_APP_API_URL.replace('/api', '')}/images/user/default-avatar.png`;
+                      e.target.src = `${process.env.REACT_APP_API_URL.replace('/api', '')}/images/user/default-avatar.png`;
                     }}
                     alt="Avatar"
                     className="rounded-circle w-100 h-100"
                     style={{ objectFit: 'cover' }}
                   />
-                  
+
                   <div className="avatar-overlay position-absolute top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center rounded-circle">
-                    <Button 
-                      variant="light" 
+                    <Button
+                      variant="light"
                       size="sm"
                       className="py-1 px-2"
                       style={{ fontSize: '0.8rem' }}
@@ -734,32 +763,111 @@ function AppNavbar() {
 
       {/* Toast Notification */}
       <div
-      style={{
-        position: 'fixed',
-        top: '20px',
-        left: '50%',
-        transform: 'translateX(-50%)',
-        zIndex: 1050,
-        minWidth: '300px'
-      }}
-    >
-      <Toast 
-        show={showToast} 
-        onClose={() => setShowToast(false)}
-        delay={3000}
-        autohide
-        bg={toastVariant}
-        text={toastVariant === 'dark' ? 'white' : 'dark'}
-        className="text-center"
+        style={{
+          position: 'fixed',
+          top: '20px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          zIndex: 1050,
+          minWidth: '300px'
+        }}
       >
-        <Toast.Header className="justify-content-between">
-          <strong>
-            {toastVariant === 'success' ? 'Success' : 'Error'}
-          </strong>
-        </Toast.Header>
-        <Toast.Body>{toastMessage}</Toast.Body>
-      </Toast>
-    </div>
+        <Toast
+          show={showToast}
+          onClose={() => setShowToast(false)}
+          delay={3000}
+          autohide
+          bg={toastVariant}
+          text={toastVariant === 'dark' ? 'white' : 'dark'}
+          className="text-center"
+        >
+          <Toast.Header className="justify-content-between">
+            <strong>
+              {toastVariant === 'success' ? 'Success' : 'Error'}
+            </strong>
+          </Toast.Header>
+          <Toast.Body>{toastMessage}</Toast.Body>
+        </Toast>
+      </div>
+
+      {/* Modal My Submissions */}
+      <Modal
+        show={showMySubmissionsModal}
+        onHide={() => setShowMySubmissionsModal(false)}
+        size="lg"
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>My Submissions</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {loadingMySubmissions ? (
+            <div className="text-center py-4">
+              <Spinner animation="border" role="status">
+                <span className="visually-hidden">Loading...</span>
+              </Spinner>
+            </div>
+          ) : (
+            <div className="row g-3">
+              {mySubmissions.map((submission) => (
+                <div key={submission._id} className="col-md-6 col-lg-4">
+                  <Card className="h-100">
+                    <Card.Img
+                      variant="top"
+                      src={`${process.env.REACT_APP_API_URL.replace('/api', '')}${submission.image}`}
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = `${process.env.REACT_APP_API_URL.replace('/api', '')}/images/submissions/default-image.jpg`;
+                      }}
+                      style={{ height: '200px', objectFit: 'cover' }}
+                    />
+                    <Card.Body>
+                      <Card.Title className="h6">
+                        {submission.competitionId.name}
+                      </Card.Title>
+                      <div className="d-flex justify-content-between align-items-center mb-2">
+                        <Badge bg={submission.score ? 'success' : 'secondary'}>
+                          Score: {submission.score || 'Not scored'}
+                        </Badge>
+                        <small className="text-muted">
+                          {new Date(submission.createdAt).toLocaleDateString()}
+                        </small>
+                      </div>
+                      {submission.scoredBy && (
+                        <small className="text-muted d-block">
+                          Scored by: {submission.scoredBy}
+                        </small>
+                      )}
+                      {submission.scoredAt && (
+                        <small className="text-muted d-block">
+                          Scored on: {new Date(submission.scoredAt).toLocaleDateString()}
+                        </small>
+                      )}
+                    </Card.Body>
+                    <Card.Footer className="bg-transparent">
+                      <Button
+                        variant="outline-primary"
+                        size="sm"
+                        className="w-100"
+                        onClick={() => {
+                          setShowMySubmissionsModal(false);
+                          navigate(`/competitions/${submission.competitionId._id}`);
+                        }}
+                      >
+                        View Competition
+                      </Button>
+                    </Card.Footer>
+                  </Card>
+                </div>
+              ))}
+              {mySubmissions.length === 0 && (
+                <div className="col-12 text-center py-4">
+                  <p className="text-muted mb-0">No submissions found</p>
+                </div>
+              )}
+            </div>
+          )}
+        </Modal.Body>
+      </Modal>
     </>
   );
 }

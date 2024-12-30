@@ -75,8 +75,8 @@ router.post('/login', login);
 // Protected routes
 router.get('/me', protect, getMe);
 router.put('/me', protect, uploadMiddleware, updateCurrentUser);
-router.get('/', protect, authorize('admin'), getAllUsers);
-router.put('/:id', protect, authorize('admin'), uploadMiddleware, updateUser);
-router.delete('/:id', protect, authorize('admin'), deleteUser);
+router.get('/', protect, authorize('admin', 'manager', 'staff'), getAllUsers);
+router.put('/:id', protect, authorize('admin', 'manager'), uploadMiddleware, updateUser);
+router.delete('/:id', protect, authorize('admin', 'manager'), deleteUser);
 
 module.exports = router;

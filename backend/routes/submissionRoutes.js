@@ -13,6 +13,7 @@ const {
   getSubmissionsByCompetition
 } = require('../controllers/submissionController');
 
+
 /**
  * Multer configuration for submission images
  */
@@ -54,8 +55,8 @@ const upload = multer({
 router.post('/', protect, upload.single('image'), createSubmission);
 router.get('/', protect, getAllSubmissions);
 router.get('/:id', protect, getSubmissionDetail);
-router.put('/:id', protect, authorize('admin'), updateSubmission);
-router.delete('/:id', protect, deleteSubmission);
+router.put('/:id', protect, authorize('admin', 'manager', 'staff'), updateSubmission);
+router.delete('/:id', protect, authorize('admin', 'manager'), deleteSubmission);
 router.get('/competition/:competitionId', getSubmissionsByCompetition);
 
 module.exports = router;

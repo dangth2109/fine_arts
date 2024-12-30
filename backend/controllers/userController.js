@@ -8,11 +8,11 @@ exports.register = async (req, res) => {
   try {
     const { email, password, role } = req.body;
 
-    // Mã hóa password
+    // Hash password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // Tạo user mới
+    // Create new user
     const user = new User({
       email,
       password: hashedPassword,
@@ -22,7 +22,7 @@ exports.register = async (req, res) => {
 
     await user.save();
 
-    // Tạo JWT token
+    // Create JWT token
     const token = jwt.sign(
       { userId: user._id },
       process.env.JWT_SECRET || 'dangth',
@@ -50,19 +50,19 @@ exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Kiểm tra user tồn tại
+    // Verify user exists
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(400).json({ message: 'Email or password is incorrect' });
     }
 
-    // Kiểm tra password
+    // Verify password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(400).json({ message: 'Email or password is incorrect' });
     }
 
-    // Tạo JWT token
+    // Create JWT token
     const token = jwt.sign(
       { userId: user._id },
       process.env.JWT_SECRET || 'dangth',
@@ -128,7 +128,6 @@ exports.getUserById = async (req, res) => {
 // Get current user info
 exports.getMe = async (req, res) => {
   try {
-    // req.user đã được set từ auth middleware
     const user = await User.findById(req.user._id).select('-password');
 
     if (!user) {

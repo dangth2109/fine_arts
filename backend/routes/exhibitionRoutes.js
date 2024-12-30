@@ -15,8 +15,8 @@ router.get('/', getAllExhibitions);
 router.get('/:id', getExhibition);
 
 // Admin only routes
-router.post('/', protect, authorize('admin'), uploadMiddleware, createExhibition);
-router.put('/:id', protect, authorize('admin'), uploadMiddleware, updateExhibition);
-router.delete('/:id', protect, authorize('admin'), deleteExhibition);
+router.post('/', protect, authorize('admin', 'manager'), uploadMiddleware, createExhibition);
+router.put('/:id', protect, authorize('admin', 'manager'), uploadMiddleware, updateExhibition);
+router.delete('/:id', protect, authorize('admin', 'manager'), deleteExhibition);
 
 module.exports = router;

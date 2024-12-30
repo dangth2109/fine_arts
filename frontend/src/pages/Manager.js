@@ -4,6 +4,7 @@ import api from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 
 const baseURL = (process.env.REACT_APP_API_URL || 'http://localhost:5000/api').replace('/api', '');
+const now = () => new Date();
 
 function Manager() {
   const { login } = useAuth();
@@ -121,7 +122,7 @@ function Manager() {
       const matchedArtworks = modalSubmissions
         .filter(item => selectedIds.some(selected => selected._id === item._id))
         .map(submission => submission._id);
-        
+
       console.log('Setting tempSelectedArtwork:', matchedArtworks);
       setTempSelectedArtwork(matchedArtworks);
     }
@@ -140,7 +141,7 @@ function Manager() {
     setError(null);
     try {
       let response;
-      switch(tab) {
+      switch (tab) {
         case 'users':
           response = await api.get('/users');
           setUsers(response.data.data);
@@ -197,14 +198,14 @@ function Manager() {
     try {
       const formData = new FormData();
       formData.append('email', editForm.email);
-      
+
       if (changePassword && editForm.password) {
         formData.append('password', editForm.password);
       }
-      
+
       const roleToSend = editForm.role === 'other' ? 'user' : editForm.role;
       formData.append('role', roleToSend);
-      
+
       if (editForm.avatar) {
         formData.append('avatar', editForm.avatar);
       }
@@ -302,7 +303,7 @@ function Manager() {
       setToastMessage('Competition created successfully!');
       setToastVariant('success');
       setShowToast(true);
-      
+
       setCompetitionForm({
         name: '',
         description: '',
@@ -340,14 +341,14 @@ function Manager() {
 
     try {
       const formData = new FormData();
-      
+
       if (editCompetitionForm.name) formData.append('name', editCompetitionForm.name);
       if (editCompetitionForm.description) formData.append('description', editCompetitionForm.description);
       if (editCompetitionForm.start) formData.append('start', editCompetitionForm.start);
       if (editCompetitionForm.end) formData.append('end', editCompetitionForm.end);
       if (editCompetitionForm.awards) formData.append('awards', editCompetitionForm.awards);
       if (editCompetitionForm.background) formData.append('background', editCompetitionForm.background);
-      
+
       formData.append('isHide', editCompetitionForm.isHide);
       formData.append('isProcessed', editCompetitionForm.isProcessed);
 
@@ -363,7 +364,7 @@ function Manager() {
       setToastVariant('success');
       setShowToast(true);
     } catch (err) {
-      setEditCompetitionError(err.response?.data?.message || 'Failed to update competition');
+      setEditCompetitionError(err.message || 'Failed to update competition');
     } finally {
       setUpdatingCompetition(false);
     }
@@ -384,8 +385,8 @@ function Manager() {
       setToastVariant('success');
       setShowToast(true);
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to delete competition');
-      setToastMessage('Failed to delete competition');
+      setShowDeleteCompetitionModal(false)
+      setToastMessage(err.message);
       setToastVariant('danger');
       setShowToast(true);
     } finally {
@@ -449,7 +450,7 @@ function Manager() {
       setToastVariant('success');
       setShowToast(true);
     } catch (err) {
-      setEditExhibitionError(err.response?.data?.message || 'Failed to update exhibition');
+      setEditExhibitionError(err.message);
     } finally {
       setUpdatingExhibition(false);
     }
@@ -470,8 +471,8 @@ function Manager() {
       setToastVariant('success');
       setShowToast(true);
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to delete exhibition');
-      setToastMessage('Failed to delete exhibition');
+      setShowDeleteExhibitionModal(false)
+      setToastMessage(err.message);
       setToastVariant('danger');
       setShowToast(true);
     } finally {
@@ -522,14 +523,15 @@ function Manager() {
     setDeletingSubmission(true);
     try {
       await api.delete(`/submissions/${submissionToDelete._id}`);
-      
+
       setShowDeleteSubmissionModal(false);
       fetchData('submissions');
       setToastMessage('Submission deleted successfully!');
       setToastVariant('success');
       setShowToast(true);
     } catch (err) {
-      setToastMessage(err.response?.data?.message || 'Failed to delete submission');
+      setShowDeleteSubmissionModal(false)
+      setToastMessage(err.message);
       setToastVariant('danger');
       setShowToast(true);
     } finally {
@@ -565,7 +567,7 @@ function Manager() {
       setToastMessage('Exhibition created successfully!');
       setToastVariant('success');
       setShowToast(true);
-      
+
       setExhibitionForm({
         name: '',
         description: '',
@@ -584,19 +586,19 @@ function Manager() {
   const handleOpenArtworkModal = async () => {
     console.log('Opening artwork modal with:', editExhibitionForm.artwork);
     setLoadingSubmissions(true);
-    
+
     try {
       const response = await api.get('/submissions?showAll=true');
       setModalSubmissions(response.data.data);
-      
+
       const selectedIds = editExhibitionForm.artwork || [];
-      console.log('selectedIds',selectedIds)
-      console.log('all',response.data.data)
+      console.log('selectedIds', selectedIds)
+      console.log('all', response.data.data)
       const matchedArtworks = response.data.data
         .filter(item => selectedIds.some(selected => selected._id === item._id))
         .map(submission => submission._id);
 
-        
+
       console.log('Matched artworks:', matchedArtworks);
       setTempSelectedArtwork(matchedArtworks);
       setShowArtworkModal(true);
@@ -612,7 +614,7 @@ function Manager() {
 
   const handleConfirmArtwork = () => {
     console.log('Selected artwork:', tempSelectedArtwork);
-    
+
     setEditExhibitionForm(prev => ({
       ...prev,
       artwork: [...tempSelectedArtwork]
@@ -624,7 +626,7 @@ function Manager() {
     if (loading) return <div>Loading...</div>;
     if (error) return <div className="text-danger">{error}</div>;
 
-    switch(activeTab) {
+    switch (activeTab) {
       case 'users':
         return (
           <>
@@ -650,14 +652,14 @@ function Manager() {
                     </td>
                     <td>{new Date(user.createdAt).toLocaleDateString()}</td>
                     <td>
-                      <i 
-                        className="bi bi-pencil-square text-primary me-2" 
-                        style={{cursor: 'pointer'}}
+                      <i
+                        className="bi bi-pencil-square text-primary me-2"
+                        style={{ cursor: 'pointer' }}
                         onClick={() => handleEditUser(user)}
                       ></i>
-                      <i 
-                        className="bi bi-trash text-danger" 
-                        style={{cursor: 'pointer'}}
+                      <i
+                        className="bi bi-trash text-danger"
+                        style={{ cursor: 'pointer' }}
                         onClick={() => handleDeleteClick(user)}
                       ></i>
                     </td>
@@ -666,8 +668,8 @@ function Manager() {
               </tbody>
             </Table>
 
-            <Modal 
-              show={showEditUserModal} 
+            <Modal
+              show={showEditUserModal}
               onHide={() => {
                 setShowEditUserModal(false);
                 setUpdateError('');
@@ -680,35 +682,35 @@ function Manager() {
               </Modal.Header>
               <Modal.Body>
                 <div className="text-center mb-4">
-                  <div 
+                  <div
                     className="avatar-container position-relative mx-auto"
                     style={{ width: '100px', height: '100px' }}
                   >
-                    <div 
+                    <div
                       className="position-relative w-100 h-100"
                       onClick={() => fileInputRef.current?.click()}
                       style={{ cursor: 'pointer' }}
                     >
                       <img
                         src={
-                          previewAvatar 
+                          previewAvatar
                             ? URL.createObjectURL(previewAvatar)
-                            : selectedUser?.avatar 
+                            : selectedUser?.avatar
                               ? `${baseURL}${selectedUser.avatar}`
                               : 'https://via.placeholder.com/100'
                         }
                         onError={(e) => {
                           e.target.onerror = null;
-                            e.target.src = `${process.env.REACT_APP_API_URL.replace('/api', '')}/images/user/default-avatar.png`;
+                          e.target.src = `${process.env.REACT_APP_API_URL.replace('/api', '')}/images/user/default-avatar.png`;
                         }}
                         alt="Avatar"
                         className="rounded-circle w-100 h-100"
                         style={{ objectFit: 'cover' }}
                       />
-                      
+
                       <div className="avatar-overlay position-absolute top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center rounded-circle">
-                        <Button 
-                          variant="light" 
+                        <Button
+                          variant="light"
                           size="sm"
                           className="py-1 px-2"
                           style={{ fontSize: '0.8rem' }}
@@ -813,14 +815,14 @@ function Manager() {
                 This action cannot be undone.
               </Modal.Body>
               <Modal.Footer>
-                <Button 
-                  variant="secondary" 
+                <Button
+                  variant="secondary"
                   onClick={() => setShowDeleteModal(false)}
                 >
                   Cancel
                 </Button>
-                <Button 
-                  variant="danger" 
+                <Button
+                  variant="danger"
                   onClick={handleDeleteUser}
                   disabled={deleting}
                 >
@@ -835,7 +837,7 @@ function Manager() {
         return (
           <>
             <div className="mb-3">
-              <Button 
+              <Button
                 variant="primary"
                 onClick={() => setShowCompetitionModal(true)}
               >
@@ -863,8 +865,13 @@ function Manager() {
                     <td>{index + 1}</td>
                     <td>{comp.name}</td>
                     <td>
-                      <Badge bg={comp.isProcessed ? 'success' : 'warning'}>
-                        {comp.isProcessed ? 'Processed' : 'In Progress'}
+                      <Badge bg={
+                        now() < new Date(comp.start) ? 'info' :
+                          now() > new Date(comp.end) ? 'danger' : 'success'
+                      }>
+                        {now() < new Date(comp.start) ? 'Upcoming' :
+                          now() > new Date(comp.end) ? 'Ended' : 'In Progress'
+                        }
                       </Badge>
                     </td>
                     <td>
@@ -876,19 +883,19 @@ function Manager() {
                     <td>{new Date(comp.end).toLocaleDateString()}</td>
                     <td>{comp.totalSubmissions}</td>
                     <td>
-                      <i 
-                        className="bi bi-pencil-square text-primary me-2" 
-                        style={{cursor: 'pointer'}}
+                      <i
+                        className="bi bi-pencil-square text-primary me-2"
+                        style={{ cursor: 'pointer' }}
                         onClick={() => handleEditCompetition(comp)}
                       ></i>
-                      <i 
-                        className="bi bi-trash text-danger me-2" 
-                        style={{cursor: 'pointer'}}
+                      <i
+                        className="bi bi-trash text-danger me-2"
+                        style={{ cursor: 'pointer' }}
                         onClick={() => handleDeleteCompetitionClick(comp)}
                       ></i>
-                      <i 
-                        className="bi bi-eye text-info" 
-                        style={{cursor: 'pointer'}}
+                      <i
+                        className="bi bi-eye text-info"
+                        style={{ cursor: 'pointer' }}
                         onClick={() => handleViewCompetition(comp)}
                       ></i>
                     </td>
@@ -897,8 +904,8 @@ function Manager() {
               </tbody>
             </Table>
 
-            <Modal 
-              show={showCompetitionModal} 
+            <Modal
+              show={showCompetitionModal}
               onHide={() => {
                 setShowCompetitionModal(false);
                 setCompetitionError('');
@@ -921,7 +928,7 @@ function Manager() {
                     <Form.Control
                       type="text"
                       value={competitionForm.name}
-                      onChange={(e) => setCompetitionForm(prev => ({...prev, name: e.target.value}))}
+                      onChange={(e) => setCompetitionForm(prev => ({ ...prev, name: e.target.value }))}
                       required
                     />
                   </Form.Group>
@@ -932,7 +939,7 @@ function Manager() {
                       as="textarea"
                       rows={3}
                       value={competitionForm.description}
-                      onChange={(e) => setCompetitionForm(prev => ({...prev, description: e.target.value}))}
+                      onChange={(e) => setCompetitionForm(prev => ({ ...prev, description: e.target.value }))}
                       required
                     />
                   </Form.Group>
@@ -944,7 +951,7 @@ function Manager() {
                         <Form.Control
                           type="date"
                           value={competitionForm.start}
-                          onChange={(e) => setCompetitionForm(prev => ({...prev, start: e.target.value}))}
+                          onChange={(e) => setCompetitionForm(prev => ({ ...prev, start: e.target.value }))}
                           required
                         />
                       </Form.Group>
@@ -955,7 +962,7 @@ function Manager() {
                         <Form.Control
                           type="date"
                           value={competitionForm.end}
-                          onChange={(e) => setCompetitionForm(prev => ({...prev, end: e.target.value}))}
+                          onChange={(e) => setCompetitionForm(prev => ({ ...prev, end: e.target.value }))}
                           required
                         />
                       </Form.Group>
@@ -967,7 +974,7 @@ function Manager() {
                     <Form.Control
                       type="text"
                       value={competitionForm.awards}
-                      onChange={(e) => setCompetitionForm(prev => ({...prev, awards: e.target.value}))}
+                      onChange={(e) => setCompetitionForm(prev => ({ ...prev, awards: e.target.value }))}
                       required
                       placeholder="e.g. $1000 for each winner"
                     />
@@ -978,19 +985,19 @@ function Manager() {
                     <Form.Control
                       type="file"
                       accept="image/*"
-                      onChange={(e) => setCompetitionForm(prev => ({...prev, background: e.target.files[0]}))}
+                      onChange={(e) => setCompetitionForm(prev => ({ ...prev, background: e.target.files[0] }))}
                       required
                     />
                   </Form.Group>
 
                   <div className="d-flex justify-content-end gap-2">
-                    <Button 
-                      variant="secondary" 
+                    <Button
+                      variant="secondary"
                       onClick={() => setShowCompetitionModal(false)}
                     >
                       Cancel
                     </Button>
-                    <Button 
+                    <Button
                       type="submit"
                       variant="primary"
                       disabled={creatingCompetition}
@@ -1002,8 +1009,8 @@ function Manager() {
               </Modal.Body>
             </Modal>
 
-            <Modal 
-              show={showEditCompetitionModal} 
+            <Modal
+              show={showEditCompetitionModal}
               onHide={() => {
                 setShowEditCompetitionModal(false);
                 setEditCompetitionError('');
@@ -1026,7 +1033,7 @@ function Manager() {
                     <Form.Control
                       type="text"
                       value={editCompetitionForm.name}
-                      onChange={(e) => setEditCompetitionForm(prev => ({...prev, name: e.target.value}))}
+                      onChange={(e) => setEditCompetitionForm(prev => ({ ...prev, name: e.target.value }))}
                       required
                     />
                   </Form.Group>
@@ -1037,7 +1044,7 @@ function Manager() {
                       as="textarea"
                       rows={3}
                       value={editCompetitionForm.description}
-                      onChange={(e) => setEditCompetitionForm(prev => ({...prev, description: e.target.value}))}
+                      onChange={(e) => setEditCompetitionForm(prev => ({ ...prev, description: e.target.value }))}
                       required
                     />
                   </Form.Group>
@@ -1049,7 +1056,7 @@ function Manager() {
                         <Form.Control
                           type="date"
                           value={editCompetitionForm.start}
-                          onChange={(e) => setEditCompetitionForm(prev => ({...prev, start: e.target.value}))}
+                          onChange={(e) => setEditCompetitionForm(prev => ({ ...prev, start: e.target.value }))}
                           required
                         />
                       </Form.Group>
@@ -1060,7 +1067,7 @@ function Manager() {
                         <Form.Control
                           type="date"
                           value={editCompetitionForm.end}
-                          onChange={(e) => setEditCompetitionForm(prev => ({...prev, end: e.target.value}))}
+                          onChange={(e) => setEditCompetitionForm(prev => ({ ...prev, end: e.target.value }))}
                           required
                         />
                       </Form.Group>
@@ -1072,7 +1079,7 @@ function Manager() {
                     <Form.Control
                       type="text"
                       value={editCompetitionForm.awards}
-                      onChange={(e) => setEditCompetitionForm(prev => ({...prev, awards: e.target.value}))}
+                      onChange={(e) => setEditCompetitionForm(prev => ({ ...prev, awards: e.target.value }))}
                       required
                     />
                   </Form.Group>
@@ -1082,7 +1089,7 @@ function Manager() {
                     <Form.Control
                       type="file"
                       accept="image/*"
-                      onChange={(e) => setEditCompetitionForm(prev => ({...prev, background: e.target.files[0]}))}
+                      onChange={(e) => setEditCompetitionForm(prev => ({ ...prev, background: e.target.files[0] }))}
                     />
                     <Form.Text className="text-muted">
                       Leave empty to keep current background
@@ -1096,7 +1103,7 @@ function Manager() {
                           type="checkbox"
                           label="Hide Competition"
                           checked={editCompetitionForm.isHide}
-                          onChange={(e) => setEditCompetitionForm(prev => ({...prev, isHide: e.target.checked}))}
+                          onChange={(e) => setEditCompetitionForm(prev => ({ ...prev, isHide: e.target.checked }))}
                         />
                       </Form.Group>
                     </Col>
@@ -1106,20 +1113,20 @@ function Manager() {
                           type="checkbox"
                           label="Mark as Processed"
                           checked={editCompetitionForm.isProcessed}
-                          onChange={(e) => setEditCompetitionForm(prev => ({...prev, isProcessed: e.target.checked}))}
+                          onChange={(e) => setEditCompetitionForm(prev => ({ ...prev, isProcessed: e.target.checked }))}
                         />
                       </Form.Group>
                     </Col>
                   </Row>
 
                   <div className="d-flex justify-content-end gap-2">
-                    <Button 
-                      variant="secondary" 
+                    <Button
+                      variant="secondary"
                       onClick={() => setShowEditCompetitionModal(false)}
                     >
                       Cancel
                     </Button>
-                    <Button 
+                    <Button
                       type="submit"
                       variant="primary"
                       disabled={updatingCompetition}
@@ -1145,14 +1152,14 @@ function Manager() {
                 This action cannot be undone and will also delete all submissions related to this competition.
               </Modal.Body>
               <Modal.Footer>
-                <Button 
-                  variant="secondary" 
+                <Button
+                  variant="secondary"
                   onClick={() => setShowDeleteCompetitionModal(false)}
                 >
                   Cancel
                 </Button>
-                <Button 
-                  variant="danger" 
+                <Button
+                  variant="danger"
                   onClick={handleDeleteCompetition}
                   disabled={deletingCompetition}
                 >
@@ -1167,7 +1174,7 @@ function Manager() {
         return (
           <>
             <div className="mb-3">
-              <Button 
+              <Button
                 variant="primary"
                 onClick={() => setShowCreateExhibitionModal(true)}
               >
@@ -1182,9 +1189,10 @@ function Manager() {
                   <th>#</th>
                   <th>Name</th>
                   <th>Location</th>
+                  <th>Status</th>
+                  <th>Visibility</th>
                   <th>Start Date</th>
                   <th>End Date</th>
-                  <th>Visibility</th>
                   <th>Artwork Count</th>
                   <th>Actions</th>
                 </tr>
@@ -1195,28 +1203,36 @@ function Manager() {
                     <td>{index + 1}</td>
                     <td>{exhibition.name}</td>
                     <td>{exhibition.location}</td>
-                    <td>{new Date(exhibition.start).toLocaleDateString()}</td>
-                    <td>{new Date(exhibition.end).toLocaleDateString()}</td>
+                    <td><Badge bg={
+                      now() < new Date(exhibition.start) ? 'info' :
+                        now() > new Date(exhibition.end) ? 'danger' : 'success'
+                    }>
+                      {now() < new Date(exhibition.start) ? 'Upcoming' :
+                        now() > new Date(exhibition.end) ? 'Ended' : 'In Progress'
+                      }
+                    </Badge></td>
                     <td>
                       <Badge bg={exhibition.isHide ? 'secondary' : 'info'}>
                         {exhibition.isHide ? 'Hidden' : 'Visible'}
                       </Badge>
                     </td>
+                    <td>{new Date(exhibition.start).toLocaleDateString()}</td>
+                    <td>{new Date(exhibition.end).toLocaleDateString()}</td>
                     <td>{exhibition.artwork?.length || 0}</td>
                     <td>
-                      <i 
-                        className="bi bi-pencil-square text-primary me-2" 
-                        style={{cursor: 'pointer'}}
+                      <i
+                        className="bi bi-pencil-square text-primary me-2"
+                        style={{ cursor: 'pointer' }}
                         onClick={() => handleEditExhibition(exhibition)}
                       ></i>
-                      <i 
-                        className="bi bi-trash text-danger me-2" 
-                        style={{cursor: 'pointer'}}
+                      <i
+                        className="bi bi-trash text-danger me-2"
+                        style={{ cursor: 'pointer' }}
                         onClick={() => handleDeleteExhibitionClick(exhibition)}
                       ></i>
-                      <i 
-                        className="bi bi-eye text-info" 
-                        style={{cursor: 'pointer'}}
+                      <i
+                        className="bi bi-eye text-info"
+                        style={{ cursor: 'pointer' }}
                         onClick={() => handleViewExhibition(exhibition)}
                       ></i>
                     </td>
@@ -1225,8 +1241,8 @@ function Manager() {
               </tbody>
             </Table>
 
-            <Modal 
-              show={showEditExhibitionModal} 
+            <Modal
+              show={showEditExhibitionModal}
               onHide={() => {
                 setShowEditExhibitionModal(false);
                 setEditExhibitionError('');
@@ -1249,7 +1265,7 @@ function Manager() {
                     <Form.Control
                       type="text"
                       value={editExhibitionForm.name}
-                      onChange={(e) => setEditExhibitionForm(prev => ({...prev, name: e.target.value}))}
+                      onChange={(e) => setEditExhibitionForm(prev => ({ ...prev, name: e.target.value }))}
                       required
                     />
                   </Form.Group>
@@ -1260,7 +1276,7 @@ function Manager() {
                       as="textarea"
                       rows={3}
                       value={editExhibitionForm.description}
-                      onChange={(e) => setEditExhibitionForm(prev => ({...prev, description: e.target.value}))}
+                      onChange={(e) => setEditExhibitionForm(prev => ({ ...prev, description: e.target.value }))}
                       required
                     />
                   </Form.Group>
@@ -1270,7 +1286,7 @@ function Manager() {
                     <Form.Control
                       type="text"
                       value={editExhibitionForm.location}
-                      onChange={(e) => setEditExhibitionForm(prev => ({...prev, location: e.target.value}))}
+                      onChange={(e) => setEditExhibitionForm(prev => ({ ...prev, location: e.target.value }))}
                       required
                     />
                   </Form.Group>
@@ -1282,7 +1298,7 @@ function Manager() {
                         <Form.Control
                           type="date"
                           value={editExhibitionForm.start}
-                          onChange={(e) => setEditExhibitionForm(prev => ({...prev, start: e.target.value}))}
+                          onChange={(e) => setEditExhibitionForm(prev => ({ ...prev, start: e.target.value }))}
                           required
                         />
                       </Form.Group>
@@ -1293,7 +1309,7 @@ function Manager() {
                         <Form.Control
                           type="date"
                           value={editExhibitionForm.end}
-                          onChange={(e) => setEditExhibitionForm(prev => ({...prev, end: e.target.value}))}
+                          onChange={(e) => setEditExhibitionForm(prev => ({ ...prev, end: e.target.value }))}
                           required
                         />
                       </Form.Group>
@@ -1305,7 +1321,7 @@ function Manager() {
                     <Form.Control
                       type="file"
                       accept="image/*"
-                      onChange={(e) => setEditExhibitionForm(prev => ({...prev, background: e.target.files[0]}))}
+                      onChange={(e) => setEditExhibitionForm(prev => ({ ...prev, background: e.target.files[0] }))}
                     />
                     <Form.Text className="text-muted">
                       Leave empty to keep current background
@@ -1317,7 +1333,7 @@ function Manager() {
                       type="checkbox"
                       label="Hide Exhibition"
                       checked={editExhibitionForm.isHide}
-                      onChange={(e) => setEditExhibitionForm(prev => ({...prev, isHide: e.target.checked}))}
+                      onChange={(e) => setEditExhibitionForm(prev => ({ ...prev, isHide: e.target.checked }))}
                     />
                   </Form.Group>
 
@@ -1327,7 +1343,7 @@ function Manager() {
                       <div className="border rounded px-3 py-2 flex-grow-1">
                         {editExhibitionForm.artwork.length} artwork(s) selected
                       </div>
-                      <Button 
+                      <Button
                         variant="outline-primary"
                         onClick={handleOpenArtworkModal}
                       >
@@ -1337,13 +1353,13 @@ function Manager() {
                   </Form.Group>
 
                   <div className="d-flex justify-content-end gap-2">
-                    <Button 
-                      variant="secondary" 
+                    <Button
+                      variant="secondary"
                       onClick={() => setShowEditExhibitionModal(false)}
                     >
                       Cancel
                     </Button>
-                    <Button 
+                    <Button
                       type="submit"
                       variant="primary"
                       disabled={updatingExhibition}
@@ -1369,14 +1385,14 @@ function Manager() {
                 This action cannot be undone.
               </Modal.Body>
               <Modal.Footer>
-                <Button 
-                  variant="secondary" 
+                <Button
+                  variant="secondary"
                   onClick={() => setShowDeleteExhibitionModal(false)}
                 >
                   Cancel
                 </Button>
-                <Button 
-                  variant="danger" 
+                <Button
+                  variant="danger"
                   onClick={handleDeleteExhibition}
                   disabled={deletingExhibition}
                 >
@@ -1385,8 +1401,8 @@ function Manager() {
               </Modal.Footer>
             </Modal>
 
-            <Modal 
-              show={showCreateExhibitionModal} 
+            <Modal
+              show={showCreateExhibitionModal}
               onHide={() => {
                 setShowCreateExhibitionModal(false);
                 setExhibitionError('');
@@ -1409,7 +1425,7 @@ function Manager() {
                     <Form.Control
                       type="text"
                       value={exhibitionForm.name}
-                      onChange={(e) => setExhibitionForm(prev => ({...prev, name: e.target.value}))}
+                      onChange={(e) => setExhibitionForm(prev => ({ ...prev, name: e.target.value }))}
                       required
                     />
                   </Form.Group>
@@ -1420,7 +1436,7 @@ function Manager() {
                       as="textarea"
                       rows={3}
                       value={exhibitionForm.description}
-                      onChange={(e) => setExhibitionForm(prev => ({...prev, description: e.target.value}))}
+                      onChange={(e) => setExhibitionForm(prev => ({ ...prev, description: e.target.value }))}
                       required
                     />
                   </Form.Group>
@@ -1430,7 +1446,7 @@ function Manager() {
                     <Form.Control
                       type="text"
                       value={exhibitionForm.location}
-                      onChange={(e) => setExhibitionForm(prev => ({...prev, location: e.target.value}))}
+                      onChange={(e) => setExhibitionForm(prev => ({ ...prev, location: e.target.value }))}
                       required
                     />
                   </Form.Group>
@@ -1442,7 +1458,7 @@ function Manager() {
                         <Form.Control
                           type="date"
                           value={exhibitionForm.start}
-                          onChange={(e) => setExhibitionForm(prev => ({...prev, start: e.target.value}))}
+                          onChange={(e) => setExhibitionForm(prev => ({ ...prev, start: e.target.value }))}
                           required
                         />
                       </Form.Group>
@@ -1453,7 +1469,7 @@ function Manager() {
                         <Form.Control
                           type="date"
                           value={exhibitionForm.end}
-                          onChange={(e) => setExhibitionForm(prev => ({...prev, end: e.target.value}))}
+                          onChange={(e) => setExhibitionForm(prev => ({ ...prev, end: e.target.value }))}
                           required
                         />
                       </Form.Group>
@@ -1465,19 +1481,19 @@ function Manager() {
                     <Form.Control
                       type="file"
                       accept="image/*"
-                      onChange={(e) => setExhibitionForm(prev => ({...prev, background: e.target.files[0]}))}
+                      onChange={(e) => setExhibitionForm(prev => ({ ...prev, background: e.target.files[0] }))}
                       required
                     />
                   </Form.Group>
 
                   <div className="d-flex justify-content-end gap-2">
-                    <Button 
-                      variant="secondary" 
+                    <Button
+                      variant="secondary"
                       onClick={() => setShowCreateExhibitionModal(false)}
                     >
                       Cancel
                     </Button>
-                    <Button 
+                    <Button
                       type="submit"
                       variant="primary"
                       disabled={creatingExhibition}
@@ -1489,8 +1505,8 @@ function Manager() {
               </Modal.Body>
             </Modal>
 
-            <Modal 
-              show={showArtworkModal} 
+            <Modal
+              show={showArtworkModal}
               onHide={() => setShowArtworkModal(false)}
               size="lg"
               className="artwork-selection-modal"
@@ -1509,22 +1525,22 @@ function Manager() {
                   <div className="row g-3">
                     {modalSubmissions.map(submission => (
                       <div key={submission._id} className="col-md-4 col-sm-6">
-                        <div 
+                        <div
                           className={`card h-100 ${tempSelectedArtwork.includes(submission._id) ? 'border-primary' : ''}`}
                           style={{ cursor: 'pointer' }}
                           onClick={() => {
-                            setTempSelectedArtwork(prev => 
+                            setTempSelectedArtwork(prev =>
                               prev.includes(submission._id)
                                 ? prev.filter(id => id !== submission._id)
                                 : [...prev, submission._id]
                             );
                           }}
                         >
-                          <img 
+                          <img
                             src={`${baseURL}${submission.image}`}
                             onError={(e) => {
                               e.target.onerror = null;
-                                e.target.src = `${baseURL}/images/submissions/default-image.jpg`;
+                              e.target.src = `${baseURL}/images/submissions/default-image.jpg`;
                             }}
                             className="card-img-top"
                             alt={submission.author}
@@ -1558,15 +1574,15 @@ function Manager() {
                 <div className="d-flex justify-content-between w-100">
                   <span>{tempSelectedArtwork.length} artwork(s) selected</span>
                   <div>
-                    <Button 
-                      variant="secondary" 
+                    <Button
+                      variant="secondary"
                       onClick={() => setShowArtworkModal(false)}
                       className="me-2"
                     >
                       Cancel
                     </Button>
-                    <Button 
-                      variant="primary" 
+                    <Button
+                      variant="primary"
                       onClick={handleConfirmArtwork}
                     >
                       Confirm
@@ -1605,24 +1621,24 @@ function Manager() {
                     <td>{submission.scoredAt ? new Date(submission.scoredAt).toLocaleDateString() : '-'}</td>
                     <td>{new Date(submission.createdAt).toLocaleDateString()}</td>
                     <td>
-                      <i 
-                        className="bi bi-pencil-square text-primary me-2" 
-                        style={{cursor: 'pointer'}}
+                      <i
+                        className="bi bi-pencil-square text-primary me-2"
+                        style={{ cursor: 'pointer' }}
                         onClick={() => handleEditSubmission(submission)}
                       ></i>
-                      <i 
-                        className="bi bi-trash text-danger me-2" 
-                        style={{cursor: 'pointer'}}
+                      <i
+                        className="bi bi-trash text-danger me-2"
+                        style={{ cursor: 'pointer' }}
                         onClick={() => handleDeleteSubmissionClick(submission)}
                       ></i>
-                      <a 
+                      <a
                         href={`/competitions/${submission.competitionId._id}`}
-                        target="_blank" 
+                        target="_blank"
                         rel="noopener noreferrer"
                       >
-                        <i 
-                          className="bi bi-eye text-info" 
-                          style={{cursor: 'pointer'}}
+                        <i
+                          className="bi bi-eye text-info"
+                          style={{ cursor: 'pointer' }}
                         ></i>
                       </a>
                     </td>
@@ -1631,8 +1647,8 @@ function Manager() {
               </tbody>
             </Table>
 
-            <Modal 
-              show={showEditSubmissionModal} 
+            <Modal
+              show={showEditSubmissionModal}
               onHide={() => {
                 setShowEditSubmissionModal(false);
                 setEditSubmissionError('');
@@ -1656,19 +1672,19 @@ function Manager() {
                       min="0"
                       max="10"
                       value={editSubmissionForm.score}
-                      onChange={(e) => setEditSubmissionForm(prev => ({...prev, score: e.target.value}))}
+                      onChange={(e) => setEditSubmissionForm(prev => ({ ...prev, score: e.target.value }))}
                       required
                     />
                   </Form.Group>
 
                   <div className="d-flex justify-content-end gap-2">
-                    <Button 
-                      variant="secondary" 
+                    <Button
+                      variant="secondary"
                       onClick={() => setShowEditSubmissionModal(false)}
                     >
                       Cancel
                     </Button>
-                    <Button 
+                    <Button
                       type="submit"
                       variant="primary"
                       disabled={updatingSubmission}
@@ -1694,14 +1710,14 @@ function Manager() {
                 This action cannot be undone.
               </Modal.Body>
               <Modal.Footer>
-                <Button 
-                  variant="secondary" 
+                <Button
+                  variant="secondary"
                   onClick={() => setShowDeleteSubmissionModal(false)}
                 >
                   Cancel
                 </Button>
-                <Button 
-                  variant="danger" 
+                <Button
+                  variant="danger"
                   onClick={handleDeleteSubmission}
                   disabled={deletingSubmission}
                 >
@@ -1723,28 +1739,28 @@ function Manager() {
         <Row>
           <Col md={2} className="bg-light min-vh-100 p-0">
             <Nav className="flex-column">
-              <Nav.Link 
+              <Nav.Link
                 className={`px-4 py-3 ${activeTab === 'users' ? 'bg-primary text-white' : ''}`}
                 onClick={() => setActiveTab('users')}
               >
                 <i className="bi bi-people me-2"></i>
                 Users
               </Nav.Link>
-              <Nav.Link 
+              <Nav.Link
                 className={`px-4 py-3 ${activeTab === 'competitions' ? 'bg-primary text-white' : ''}`}
                 onClick={() => setActiveTab('competitions')}
               >
                 <i className="bi bi-trophy me-2"></i>
                 Competitions
               </Nav.Link>
-              <Nav.Link 
+              <Nav.Link
                 className={`px-4 py-3 ${activeTab === 'exhibitions' ? 'bg-primary text-white' : ''}`}
                 onClick={() => setActiveTab('exhibitions')}
               >
                 <i className="bi bi-easel me-2"></i>
                 Exhibitions
               </Nav.Link>
-              <Nav.Link 
+              <Nav.Link
                 className={`px-4 py-3 ${activeTab === 'submissions' ? 'bg-primary text-white' : ''}`}
                 onClick={() => setActiveTab('submissions')}
               >
@@ -1770,8 +1786,8 @@ function Manager() {
           minWidth: '300px'
         }}
       >
-        <Toast 
-          show={showToast} 
+        <Toast
+          show={showToast}
           onClose={() => setShowToast(false)}
           delay={3000}
           autohide
