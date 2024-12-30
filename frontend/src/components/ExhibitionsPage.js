@@ -49,6 +49,10 @@ function ExhibitionsPage() {
                 <Card.Img 
                   variant="top" 
                   src={`${baseURL}${exhibition.background}`}
+                  onError={(e) => {
+                    e.target.onerror = null;
+                      e.target.src = `${baseURL}/images/exhibitions/default-background.jpg`;
+                  }}
                   alt={exhibition.name}
                   style={{ height: '200px', objectFit: 'cover' }}
                 />

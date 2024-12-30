@@ -136,11 +136,7 @@ function AppNavbar() {
       setToastVariant('success');
       setShowToast(true);
     } catch (err) {
-      setSubmitError(err.response?.data?.message || 'Failed to submit artwork');
-
-      setToastMessage(err.response?.data?.message || 'Failed to submit artwork');
-      setToastVariant('danger');
-      setShowToast(true);
+      setSubmitError(err.message || 'Failed to submit artwork');
     } finally {
       setUploading(false);
     }
@@ -348,6 +344,10 @@ function AppNavbar() {
                         {user.avatar ? (
                           <img
                             src={`${process.env.REACT_APP_API_URL.replace('/api', '')}${user.avatar}`}
+                            onError={(e) => {
+                              e.target.onerror = null;
+                                e.target.src = `${process.env.REACT_APP_API_URL.replace('/api', '')}/images/user/default-avatar.png`;
+                            }}
                             alt="User Avatar"
                             className="avatar-img"
                           />
@@ -632,6 +632,10 @@ function AppNavbar() {
                           ? `${process.env.REACT_APP_API_URL.replace('/api', '')}${user.avatar}`
                           : 'https://via.placeholder.com/100'
                     }
+                    onError={(e) => {
+                      e.target.onerror = null;
+                        e.target.src = `${process.env.REACT_APP_API_URL.replace('/api', '')}/images/user/default-avatar.png`;
+                    }}
                     alt="Avatar"
                     className="rounded-circle w-100 h-100"
                     style={{ objectFit: 'cover' }}

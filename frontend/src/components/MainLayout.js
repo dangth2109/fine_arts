@@ -71,7 +71,7 @@ function MainLayout() {
                   Latest Exhibitions
                 </span>
               </h2>
-              <button 
+              <button
                 className="btn btn-outline-primary"
                 onClick={() => navigate('/exhibitions')}
               >
@@ -84,9 +84,9 @@ function MainLayout() {
         <Row className="mb-5">
           <Col>
             {exhibitions.length > 0 ? (
-              <Carousel 
-                interval={3000} 
-                indicators={true} 
+              <Carousel
+                interval={3000}
+                indicators={true}
                 controls={false}
                 className="custom-carousel"
               >
@@ -94,7 +94,7 @@ function MainLayout() {
                   <Carousel.Item key={idx}>
                     <div className="d-flex justify-content-between">
                       {group.map((exhibition, index) => (
-                        <Link 
+                        <Link
                           to={`/exhibitions/${exhibition._id}`}
                           key={`${exhibition._id}-${index}`}
                           className="text-decoration-none"
@@ -102,11 +102,16 @@ function MainLayout() {
                         >
                           <Card className="h-100 shadow-sm">
                             <div className="card-img-wrapper">
-                              <Card.Img 
-                                variant="top" 
+                              <Card.Img
+                                variant="top"
                                 src={`${baseURL}${exhibition.background}`}
+                                onError={(e) => {
+                                  e.target.onerror = null;
+                                    e.target.src = `${baseURL}/images/exhibitions/default-background.jpg`;
+                                }}
                                 alt={exhibition.name}
                                 className="card-img"
+                                loading="lazy"
                               />
                             </div>
                             <Card.Body className="d-flex flex-column">
@@ -145,7 +150,7 @@ function MainLayout() {
                   Latest Competitions
                 </span>
               </h2>
-              <button 
+              <button
                 className="btn btn-outline-primary"
                 onClick={() => navigate('/competitions')}
               >
@@ -158,9 +163,9 @@ function MainLayout() {
         <Row>
           <Col>
             {competitions.length > 0 ? (
-              <Carousel 
-                interval={3000} 
-                indicators={true} 
+              <Carousel
+                interval={3000}
+                indicators={true}
                 controls={false}
                 className="custom-carousel"
               >
@@ -168,7 +173,7 @@ function MainLayout() {
                   <Carousel.Item key={idx}>
                     <div className="d-flex justify-content-between">
                       {group.map((competition, index) => (
-                        <Link 
+                        <Link
                           to={`/competitions/${competition._id}`}
                           key={`${competition._id}-${index}`}
                           className="text-decoration-none"
@@ -176,9 +181,13 @@ function MainLayout() {
                         >
                           <Card className="h-100 shadow-sm">
                             <div className="card-img-wrapper">
-                              <Card.Img 
-                                variant="top" 
+                              <Card.Img
+                                variant="top"
                                 src={`${baseURL}${competition.background}`}
+                                onError={(e) => {
+                                  e.target.onerror = null;
+                                    e.target.src = `${baseURL}/images/competitions/default-background.jpg`;
+                                }}
                                 alt={competition.name}
                                 className="card-img"
                               />

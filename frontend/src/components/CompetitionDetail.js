@@ -120,6 +120,10 @@ function CompetitionDetail() {
             <Card.Img
               variant="top"
               src={`${baseURL}${competition.background}`}
+              onError={(e) => {
+                e.target.onerror = null;
+                  e.target.src = `${baseURL}/images/competitions/default-background.jpg`;
+              }}
               alt={competition.name}
               className="competition-banner"
             />
@@ -300,6 +304,10 @@ function CompetitionDetail() {
               <Card.Img
                 variant="top"
                 src={`${baseURL}${submission.image}`}
+                onError={(e) => {
+                  e.target.onerror = null;
+                    e.target.src = `${baseURL}/images/submissions/default-image.jpg`;
+                }}
                 alt={`Submission by ${submission.author}`}
                 className="submission-image"
               />
@@ -372,6 +380,10 @@ function CompetitionDetail() {
                   <TransformComponent>
                     <img
                       src={`${baseURL}${selectedSubmission.image}`}
+                      onError={(e) => {
+                        e.target.onerror = null;
+                          e.target.src = `${baseURL}/images/submissions/default-image.jpg`;
+                      }}
                       alt={`Submission by ${selectedSubmission.author}`}
                       className="submission-detail-image"
                     />

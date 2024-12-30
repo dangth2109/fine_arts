@@ -46,6 +46,10 @@ function ExhibitionDetail() {
               <Card.Img 
                 variant="top" 
                 src={`${baseURL}${exhibition.background}`}
+                onError={(e) => {
+                  e.target.onerror = null;
+                    e.target.src = `${baseURL}/images/exhibitions/default-background.jpg`;
+                }}
                 alt={exhibition.name}
                 className="exhibition-banner"
               />
@@ -147,6 +151,10 @@ function ExhibitionDetail() {
                 <Card.Img 
                   variant="top" 
                   src={`${baseURL}${submission.image}`}
+                  onError={(e) => {
+                    e.target.onerror = null;
+                      e.target.src = `${baseURL}/images/submissions/default-image.jpg`;
+                  }}
                   alt={`Artwork by ${submission.author}`}
                   className="artwork-image"
                 />
@@ -210,6 +218,10 @@ function ExhibitionDetail() {
                 <TransformComponent>
                   <img
                     src={`${baseURL}${selectedSubmission.image}`}
+                    onError={(e) => {
+                      e.target.onerror = null;
+                        e.target.src = `${baseURL}/images/submissions/default-image.jpg`;
+                    }} 
                     alt={`Artwork by ${selectedSubmission.author}`}
                     className="artwork-detail-image w-100"
                   />

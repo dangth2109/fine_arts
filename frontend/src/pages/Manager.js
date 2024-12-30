@@ -697,6 +697,10 @@ function Manager() {
                               ? `${baseURL}${selectedUser.avatar}`
                               : 'https://via.placeholder.com/100'
                         }
+                        onError={(e) => {
+                          e.target.onerror = null;
+                            e.target.src = `${process.env.REACT_APP_API_URL.replace('/api', '')}/images/user/default-avatar.png`;
+                        }}
                         alt="Avatar"
                         className="rounded-circle w-100 h-100"
                         style={{ objectFit: 'cover' }}
@@ -1517,7 +1521,11 @@ function Manager() {
                           }}
                         >
                           <img 
-                            src={`${baseURL}${submission.image}`} 
+                            src={`${baseURL}${submission.image}`}
+                            onError={(e) => {
+                              e.target.onerror = null;
+                                e.target.src = `${baseURL}/images/submissions/default-image.jpg`;
+                            }}
                             className="card-img-top"
                             alt={submission.author}
                             style={{ height: '150px', objectFit: 'cover' }}

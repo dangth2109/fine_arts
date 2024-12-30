@@ -49,6 +49,10 @@ function CompetitionsPage() {
                 <Card.Img 
                   variant="top" 
                   src={`${baseURL}${competition.background}`}
+                  onError={(e) => {
+                    e.target.onerror = null;
+                      e.target.src = `${baseURL}/images/competitions/default-background.jpg`;
+                  }}
                   alt={competition.name}
                   style={{ height: '200px', objectFit: 'cover' }}
                 />
