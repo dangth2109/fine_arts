@@ -209,7 +209,7 @@ exports.deleteSubmission = async (req, res) => {
       });
     }
 
-    if (req.user.role !== 'admin' && submission.author !== req.user.email) {
+    if (req.user.role !== 'admin' && req.user.role !== 'manager' && submission.author !== req.user.email) {
       return res.status(403).json({
         success: false,
         message: 'Access denied'
@@ -224,10 +224,15 @@ exports.deleteSubmission = async (req, res) => {
     }
 
     await Competition.findByIdAndUpdate(submission.competitionId, {
-      $inc: { totalSubmissions: -1 }
+      $set: {
+        winners: [],
+        isProcessed: false,
+        $inc: { totalSubmissions: -1 }
+      }
     });
 
     await submission.deleteOne();
+    await runCronManually();
 
     res.status(200).json({
       success: true,

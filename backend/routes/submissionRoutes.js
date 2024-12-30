@@ -56,7 +56,7 @@ router.post('/', protect, upload.single('image'), createSubmission);
 router.get('/', protect, getAllSubmissions);
 router.get('/:id', protect, getSubmissionDetail);
 router.put('/:id', protect, authorize('admin', 'manager', 'staff'), updateSubmission);
-router.delete('/:id', protect, authorize('admin', 'manager'), deleteSubmission);
+router.delete('/:id', protect, deleteSubmission);
 router.get('/competition/:competitionId', getSubmissionsByCompetition);
 
 module.exports = router;
