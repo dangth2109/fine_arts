@@ -86,7 +86,31 @@ exports.login = async (req, res) => {
 // Get all users
 exports.getAllUsers = async (req, res) => {
   try {
-    const users = await User.find().select('-password').sort({ createdAt: -1 });
+    const { email, role, startDate, endDate } = req.query;
+    
+    const filter = {};
+
+    if (email) {
+      filter.email = { $regex: email, $options: 'i' };
+    }
+
+    if (role) {
+      filter.role = role;
+    }
+
+    if (startDate || endDate) {
+      filter.createdAt = {};
+      if (startDate) {
+        filter.createdAt.$gte = new Date(startDate);
+      }
+      if (endDate) {
+        filter.createdAt.$lte = new Date(endDate);
+      }
+    }
+
+    const users = await User.find(filter)
+      .select('-password')
+      .sort({ createdAt: -1 });
     
     res.status(200).json({
       success: true,
@@ -149,7 +173,7 @@ exports.getMe = async (req, res) => {
   }
 };
 
-// Get all users (Admin only)
+// Get all users (Admin, Manager access)
 exports.getUsers = async (req, res) => {
   try {
     const users = await User.find().select('-password');
@@ -165,7 +189,7 @@ exports.getUsers = async (req, res) => {
   }
 };
 
-// Get user by ID (Admin only)
+// Get user by ID (Admin, Manager access)
 exports.getUserById = async (req, res) => {
   try {
     const user = await User.findById(req.params.id).select('-password');
@@ -187,7 +211,7 @@ exports.getUserById = async (req, res) => {
   }
 };
 
-// Update user (Admin only)
+// Update user (Admin, Manager access)
 exports.updateUser = async (req, res) => {
   try {
     console.log('Starting update process');
@@ -206,16 +230,13 @@ exports.updateUser = async (req, res) => {
       });
     }
 
-    // Tạo object updateData
     const updateData = {};
     if(email) updateData.email = email;
     if(role) updateData.role = role;
     if(password) updateData.password = await bcrypt.hash(password, salt);
 
-    // Xử lý avatar nếu có file mới
     if (req.file) {
       console.log('Processing new avatar');
-      // Xóa avatar cũ nếu tồn tại
       if (currentUser.avatar) {
         const oldAvatarPath = path.join(__dirname, '../../uploads', currentUser.avatar);
         console.log('Checking old avatar at:', oldAvatarPath);
@@ -228,12 +249,10 @@ exports.updateUser = async (req, res) => {
           console.error('Error deleting old avatar:', err);
         }
       }
-      // Set path mới cho avatar
       updateData.avatar = `/images/user/${req.file.filename}`;
       console.log('New avatar path:', updateData.avatar);
     }
 
-    // Update user với tất cả thông tin mới
     const updatedUser = await User.findByIdAndUpdate(
       req.params.id,
       updateData,
@@ -248,7 +267,6 @@ exports.updateUser = async (req, res) => {
     });
   } catch (error) {
     console.error('Update error:', error);
-    // Cleanup file mới nếu có lỗi
     if (req.file) {
       fs.unlinkSync(req.file.path);
     }
@@ -259,10 +277,9 @@ exports.updateUser = async (req, res) => {
   }
 };
 
-// Delete user (Admin only)
+// Delete user (Admin, Manager access)
 exports.deleteUser = async (req, res) => {
   try {
-    // Kiểm tra nếu user đang cố xóa chính mình
     if (req.user._id.toString() === req.params.id) {
       return res.status(403).json({
         success: false,
@@ -279,7 +296,6 @@ exports.deleteUser = async (req, res) => {
       });
     }
 
-    // Xóa avatar nếu có
     if (user.avatar) {
       const avatarPath = path.join(__dirname, '../../uploads', user.avatar);
       if (fs.existsSync(avatarPath)) {
@@ -335,12 +351,9 @@ exports.updateCurrentUser = async (req, res) => {
       });
     }
 
-    // Prepare update data
     const updateData = {};
     
-    // Update email if provided
     if (req.body.email) {
-      // Check if email is already taken by another user
       const emailExists = await User.findOne({ 
         email: req.body.email,
         _id: { $ne: user._id }
@@ -356,15 +369,12 @@ exports.updateCurrentUser = async (req, res) => {
       updateData.email = req.body.email;
     }
 
-    // Update password if provided
     if (req.body.password) {
       const salt = await bcrypt.genSalt(10);
       updateData.password = await bcrypt.hash(req.body.password, salt);
     }
 
-    // Update avatar if provided
     if (req.file) {
-      // Delete old avatar if exists
       if (user.avatar && user.avatar.startsWith('/images/')) {
         const oldPath = path.join(__dirname, '../../uploads', user.avatar);
         if (fs.existsSync(oldPath)) {
@@ -374,14 +384,12 @@ exports.updateCurrentUser = async (req, res) => {
       updateData.avatar = `/images/user/${req.file.filename}`;
     }
 
-    // Update user
     const updatedUser = await User.findByIdAndUpdate(
       user._id,
       updateData,
       { new: true }
     ).select('-password');
 
-    // Generate new token
     const token = jwt.sign(
       { userId: updatedUser._id },
       process.env.JWT_SECRET,

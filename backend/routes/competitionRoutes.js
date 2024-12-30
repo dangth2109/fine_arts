@@ -72,7 +72,7 @@ const uploadMiddleware = (req, res, next) => {
 router.get('/', getAllCompetitions);
 router.get('/:id', getCompetition);
 
-// Protected routes (admin only)
+// Protected routes (admin, manager only)
 router.post('/', protect, authorize('admin', 'manager'), uploadMiddleware, createCompetition);
 router.put('/:id', protect, authorize('admin', 'manager'), uploadMiddleware, updateCompetition);
 router.delete('/:id', protect, authorize('admin', 'manager'), deleteCompetition);

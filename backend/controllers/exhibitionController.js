@@ -9,7 +9,32 @@ const path = require('path');
  */
 exports.getAllExhibitions = async (req, res) => {
   try {
-    const exhibitions = await Exhibition.find()
+    const {name, location, status, isHide, start, end} = req.query;
+
+    const filter = {};
+
+    if (name) filter.name = { $regex: name, $options: 'i' };
+    if (location) filter.location = { $regex: location, $options: 'i' };
+    if (status) {
+      const now = new Date();
+      if (status === 'ended') filter.end = { $lt: now };
+      else if (status === 'in-progress') filter.$and = [
+        { start: { $lte: now } },
+        { end: { $gt: now } }
+      ];
+      else if (status === 'upcoming') filter.start = { $gt: now };
+    }
+    if (isHide) filter.isHide = isHide;
+    if (start || end) {
+      if (start) {
+        filter.start = { $gte: new Date(start) };
+      }
+      if (end) {
+        filter.end = { $lte: new Date(end) };
+      }
+    }
+
+    const exhibitions = await Exhibition.find(filter)
       .select('name description location background start end artwork totalSubmissions isHide')
       .sort({ createdAt: -1 });
     
@@ -57,7 +82,7 @@ exports.getExhibition = async (req, res) => {
 
 /**
  * Create a new exhibition
- * Admin access only
+ * Admin, Manager access
  */
 exports.createExhibition = async (req, res) => {
   try {
@@ -125,7 +150,7 @@ exports.createExhibition = async (req, res) => {
 
 /**
  * Update exhibition details
- * Admin access only
+ * Admin, Manager access
  */
 exports.updateExhibition = async (req, res) => {
   try {
@@ -246,7 +271,7 @@ exports.updateExhibition = async (req, res) => {
 
 /**
  * Delete an exhibition and its associated files
- * Admin access only
+ * Admin, Manager access
  */
 exports.deleteExhibition = async (req, res) => {
   try {

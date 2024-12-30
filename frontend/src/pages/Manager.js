@@ -105,6 +105,36 @@ function Manager() {
   const [loadingSubmissions, setLoadingSubmissions] = useState(false);
   const fileInputRef = useRef(null);
   const [previewAvatar, setPreviewAvatar] = useState(null);
+  const [userFilters, setUserFilters] = useState({
+    email: '',
+    role: '',
+    createdAt: ''
+  });
+  const [debouncedFilters, setDebouncedFilters] = useState(userFilters);
+  const emailInputRef = useRef(null);
+  const [competitionFilters, setCompetitionFilters] = useState({
+    name: '',
+    status: '', // ended, in-progress, upcoming
+    start: '',
+    end: '',
+    isHide: ''
+  });
+  const [debouncedCompetitionFilters, setDebouncedCompetitionFilters] = useState(competitionFilters);
+  const competitionNameInputRef = useRef(null);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedFilters(userFilters);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [userFilters]);
+
+  useEffect(() => {
+    if (activeTab === 'users') {
+      fetchData('users');
+    }
+  }, [debouncedFilters, activeTab]);
 
   useEffect(() => {
     fetchData(activeTab);
@@ -136,6 +166,20 @@ function Manager() {
     };
   }, [previewAvatar]);
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedCompetitionFilters(competitionFilters);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [competitionFilters]);
+
+  useEffect(() => {
+    if (activeTab === 'competitions') {
+      fetchData('competitions');
+    }
+  }, [debouncedCompetitionFilters, activeTab]);
+
   const fetchData = async (tab) => {
     setLoading(true);
     setError(null);
@@ -143,11 +187,23 @@ function Manager() {
       let response;
       switch (tab) {
         case 'users':
-          response = await api.get('/users');
+          const queryParams = new URLSearchParams();
+          if (userFilters.email) queryParams.append('email', userFilters.email);
+          if (userFilters.role) queryParams.append('role', userFilters.role);
+          if (userFilters.createdAt) queryParams.append('createdAt', userFilters.createdAt);
+          
+          response = await api.get(`/users?${queryParams.toString()}`);
           setUsers(response.data.data);
           break;
         case 'competitions':
-          response = await api.get('/competitions?showAll=true');
+          const queryParamsCompetitions = new URLSearchParams();
+          if (debouncedCompetitionFilters.name) queryParamsCompetitions.append('name', debouncedCompetitionFilters.name);
+          if (debouncedCompetitionFilters.status) queryParamsCompetitions.append('status', debouncedCompetitionFilters.status);
+          if (debouncedCompetitionFilters.start) queryParamsCompetitions.append('start', debouncedCompetitionFilters.start);
+          if (debouncedCompetitionFilters.end) queryParamsCompetitions.append('end', debouncedCompetitionFilters.end);
+          if (debouncedCompetitionFilters.isHide) queryParamsCompetitions.append('isHide', debouncedCompetitionFilters.isHide);
+          
+          response = await api.get(`/competitions?${queryParamsCompetitions.toString()}`);
           setCompetitions(response.data.data);
           break;
         case 'exhibitions':
@@ -622,6 +678,22 @@ function Manager() {
     setShowArtworkModal(false);
   };
 
+  const handleFilterChange = (e) => {
+    const { name, value } = e.target;
+    setUserFilters(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleCompetitionFilterChange = (e) => {
+    const { name, value } = e.target;
+    setCompetitionFilters(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
   const renderContent = () => {
     if (loading) return <div>Loading...</div>;
     if (error) return <div className="text-danger">{error}</div>;
@@ -630,6 +702,52 @@ function Manager() {
       case 'users':
         return (
           <>
+            <div className="mb-4 p-3 border rounded">
+              <Row className="g-3">
+                <Col md={4}>
+                  <Form.Group>
+                    <Form.Label>Email</Form.Label>
+                    <Form.Control
+                      ref={emailInputRef}
+                      type="text"
+                      name="email"
+                      value={userFilters.email}
+                      onChange={handleFilterChange}
+                      placeholder="Search by email..."
+                    />
+                  </Form.Group>
+                </Col>
+                <Col md={4}>
+                  <Form.Group>
+                    <Form.Label>Role</Form.Label>
+                    <Form.Select
+                      name="role"
+                      value={userFilters.role}
+                      onChange={handleFilterChange}
+                    >
+                      <option value="">All Roles</option>
+                      <option value="admin">Admin</option>
+                      <option value="manager">Manager</option>
+                      <option value="staff">Staff</option>
+                      <option value="student">Student</option>
+                      <option value="user">Other</option>
+                    </Form.Select>
+                  </Form.Group>
+                </Col>
+                <Col md={4}>
+                  <Form.Group>
+                    <Form.Label>Created At</Form.Label>
+                    <Form.Control
+                      type="date"
+                      name="createdAt"
+                      value={userFilters.createdAt}
+                      onChange={handleFilterChange}
+                    />
+                  </Form.Group>
+                </Col>
+              </Row>
+            </div>
+
             <Table striped bordered hover>
               <thead>
                 <tr>
@@ -836,16 +954,82 @@ function Manager() {
       case 'competitions':
         return (
           <>
-            <div className="mb-3">
-              <Button
-                variant="primary"
-                onClick={() => setShowCompetitionModal(true)}
-              >
-                <i className="bi bi-plus-circle me-2"></i>
-                Create New Competition
-              </Button>
+            <div className="mb-4 p-3 border rounded">
+              <Row className="g-3">
+                <Col md={4}>
+                  <Form.Group>
+                    <Form.Label>Name</Form.Label>
+                    <Form.Control
+                      ref={competitionNameInputRef}
+                      type="text"
+                      name="name"
+                      value={competitionFilters.name}
+                      onChange={handleCompetitionFilterChange}
+                      placeholder="Search by name..."
+                    />
+                  </Form.Group>
+                </Col>
+                <Col md={4}>
+                  <Form.Group>
+                    <Form.Label>Status</Form.Label>
+                    <Form.Select
+                      name="status"
+                      value={competitionFilters.status}
+                      onChange={handleCompetitionFilterChange}
+                    >
+                      <option value="">All Status</option>
+                      <option value="ended">Ended</option>
+                      <option value="in-progress">In Progress</option>
+                      <option value="upcoming">Upcoming</option>
+                    </Form.Select>
+                  </Form.Group>
+                </Col>
+                <Col md={4}>
+                  <Form.Group>
+                    <Form.Label>Visibility</Form.Label>
+                    <Form.Select
+                      name="isHide"
+                      value={competitionFilters.isHide}
+                      onChange={handleCompetitionFilterChange}
+                    >
+                      <option value="">All</option>
+                      <option value="true">Hidden</option>
+                      <option value="false">Visible</option>
+                    </Form.Select>
+                  </Form.Group>
+                </Col>
+                <Col md={6}>
+                  <Form.Group>
+                    <Form.Label>Start Date</Form.Label>
+                    <Form.Control
+                      type="date"
+                      name="start"
+                      value={competitionFilters.start}
+                      onChange={handleCompetitionFilterChange}
+                    />
+                  </Form.Group>
+                </Col>
+                <Col md={6}>
+                  <Form.Group>
+                    <Form.Label>End Date</Form.Label>
+                    <Form.Control
+                      type="date"
+                      name="end"
+                      value={competitionFilters.end}
+                      onChange={handleCompetitionFilterChange}
+                    />
+                  </Form.Group>
+                </Col>
+              </Row>
             </div>
 
+            <div className="d-flex justify-content-end mb-3">
+              <Button variant="primary" onClick={() => setShowCompetitionModal(true)}>
+                <i className="bi bi-plus-circle me-2"></i>
+                Add Competition
+              </Button>
+            </div>
+            
             <Table striped bordered hover>
               <thead>
                 <tr>

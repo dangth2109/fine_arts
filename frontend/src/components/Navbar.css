@@ -236,11 +236,11 @@
 
 /* Modal Backdrop */
 .modal-backdrop {
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(0, 0, 0, 0.7) !important;
 }
 
 .modal-backdrop.show {
-  opacity: 0.5;
+  opacity: 0.7;
 }
 
 /* User Profile Menu Styles */
@@ -329,4 +329,192 @@
 .avatar-container button {
   font-size: 0.8rem;
   padding: 0.25rem 0.5rem;
+}
+
+.submission-container {
+  cursor: pointer;
+}
+
+.submission-overlay {
+  background: rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.2s ease;
+}
+
+.submission-container:hover .submission-overlay {
+  opacity: 1;
+  visibility: visible;
+}
+
+.submission-overlay .btn {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  min-width: 60px;
+  text-align: center;
+  justify-content: center;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: all 0.2s ease;
+  margin: 0 2px;
+}
+
+.submission-overlay .btn i {
+  margin-right: 3px;
+  font-size: 0.7rem;
+}
+
+.submission-container:hover .submission-overlay .btn {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.submission-overlay .btn-primary {
+  background-color: #007bff;
+  border-color: #007bff;
+  color: white;
+}
+
+.submission-overlay .btn-warning {
+  background-color: #ffc107;
+  border-color: #ffc107;
+  color: #000;
+}
+
+.submission-overlay .btn-danger {
+  background-color: #dc3545;
+  border-color: #dc3545;
+  color: white;
+}
+
+.submission-overlay .btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.card-footer {
+  padding: 0.75rem;
+  background-color: rgba(0, 0, 0, 0.03);
+}
+
+.card-footer .btn-outline-primary {
+  transition: all 0.2s ease;
+}
+
+.card-footer .btn-outline-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Submission Modal Styles */
+.submission-modal {
+  max-width: 90vw;
+  margin: 1.75rem auto;
+  z-index: 1060;
+}
+
+.submission-modal-content {
+  background-color: #f8f9fa;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+}
+
+.submission-modal-header {
+  background-color: white;
+  border-bottom: 1px solid #dee2e6;
+  padding: 1rem;
+}
+
+.submission-modal-body {
+  background-color: #000;
+  height: calc(90vh - 120px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.image-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.submission-detail-image {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.score-badge {
+  font-size: 0.9rem;
+  padding: 0.5em 1em;
+}
+
+/* Transform Wrapper Styles */
+.react-transform-wrapper {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.react-transform-component {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Animation cho modal và overlay */
+.modal.fade .modal-dialog {
+  transition: transform 0.2s ease-out;
+}
+
+.modal.fade.show .modal-dialog {
+  transform: none;
+}
+
+.modal-backdrop.fade {
+  opacity: 0;
+  transition: opacity 0.2s linear;
+}
+
+.modal-backdrop.show {
+  opacity: 0.7;
+}
+
+/* Modal backdrop styles */
+.modal-backdrop {
+  background-color: rgba(0, 0, 0, 0.7) !important;
+}
+
+.modal-backdrop.show {
+  opacity: 0.7;
+}
+
+/* Animation cho modal và overlay */
+.modal.fade .modal-dialog {
+  transition: transform 0.2s ease-out;
+}
+
+.modal.fade.show .modal-dialog {
+  transform: none;
+}
+
+.modal-backdrop.fade {
+  opacity: 0;
+  transition: opacity 0.2s linear;
+}
+
+/* Đảm bảo z-index cho các modal */
+.modal {
+  z-index: 1050;
+}
+
+.modal-backdrop {
+  z-index: 1040;
+}
+
+/* Đảm bảo toast luôn hiển thị trên cùng */
+.toast-container {
+  z-index: 1060;
 }

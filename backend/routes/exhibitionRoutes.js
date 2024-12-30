@@ -14,7 +14,7 @@ const {
 router.get('/', getAllExhibitions);
 router.get('/:id', getExhibition);
 
-// Admin only routes
+// Admin, Manager only routes
 router.post('/', protect, authorize('admin', 'manager'), uploadMiddleware, createExhibition);
 router.put('/:id', protect, authorize('admin', 'manager'), uploadMiddleware, updateExhibition);
 router.delete('/:id', protect, authorize('admin', 'manager'), deleteExhibition);

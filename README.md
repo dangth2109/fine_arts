@@ -87,12 +87,20 @@ Frontend will run on http://localhost:3000
 ## Default Accounts
 
 Admin:
-- Email: admin@mail.com
-- Password: 1
+- Email: admin01@mail.com
+- Password: 123456
+
+Manager:
+- Email: manager@mail.com
+- Password: 123456
+
+Staff:
+- Email: staff@mail.com
+- Password: 123456
 
 Student:
-- Email: student@mail.com
-- Password: 1
+- Email: student01@mail.com
+- Password: 123456
 
 ## Features
 

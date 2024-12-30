@@ -3,7 +3,6 @@ const mongoose = require('mongoose');
 const submissionSchema = new mongoose.Schema({
   image: {
     type: String,
-    required: [true, 'Submission image is required']
   },
   competitionId: {
     type: mongoose.Schema.Types.ObjectId,

@@ -9,7 +9,29 @@ const path = require('path');
  */
 exports.getAllCompetitions = async (req, res) => {
   try {
-    const competitions = await Competition.find()
+    const {name, status, isHide, start, end} = req.query;
+    const filter = {};
+    if (name) filter.name = { $regex: name, $options: 'i' };
+    if (status) {
+      const now = new Date();
+      if (status === 'ended') filter.end = { $lt: now };
+      else if (status === 'in-progress') filter.$and = [
+        { start: { $lte: now } },
+        { end: { $gt: now } }
+      ];
+      else if (status === 'upcoming') filter.start = { $gt: now };
+    }
+    if (isHide) filter.isHide = isHide;
+    if (start || end) {
+      if (start) {
+        filter.start = { $gte: new Date(start) };
+      }
+      if (end) {
+        filter.end = { $lte: new Date(end) };
+      }
+    }
+
+    const competitions = await Competition.find(filter)
       .select('name description background start end totalSubmissions isHide awards')
       .sort({ createdAt: -1 });
 
@@ -57,7 +79,7 @@ exports.getCompetition = async (req, res) => {
 
 /**
  * Create a new competition
- * Admin access only
+ * Admin, Manager access
  */
 exports.createCompetition = async (req, res) => {
   try {
@@ -124,7 +146,7 @@ exports.createCompetition = async (req, res) => {
 
 /**
  * Update competition details
- * Admin access only
+ * Admin, Manager access
  */
 exports.updateCompetition = async (req, res) => {
   try {
@@ -213,7 +235,7 @@ exports.updateCompetition = async (req, res) => {
 
 /**
  * Delete a competition and its associated files
- * Admin access only
+ * Admin, Manager access
  */
 exports.deleteCompetition = async (req, res) => {
   try {
@@ -261,7 +283,7 @@ exports.deleteCompetition = async (req, res) => {
 
 /**
  * Process winners for a specific competition
- * Admin access only
+ * Admin, Manager access
  */
 exports.processWinners = async (req, res) => {
   try {

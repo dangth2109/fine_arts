@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Navbar, Container, Nav, NavDropdown, Button, Modal, Form, Toast, Card, Badge, Spinner } from 'react-bootstrap';
+import { Navbar, Container, Nav, NavDropdown, Button, Modal, Form, Toast, Badge, Spinner } from 'react-bootstrap';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../services/api';
 import './Navbar.css';
@@ -323,6 +324,39 @@ function AppNavbar() {
     fetchMySubmissions();
   };
 
+  // Add these new states
+  const [showImageModal, setShowImageModal] = useState(false);
+  const [selectedSubmission, setSelectedSubmission] = useState(null);
+
+  // Add handlers for submission actions
+  const handleViewSubmission = (submission) => {
+    setSelectedSubmission(submission);
+    setShowImageModal(true);
+  };
+
+  const handleEditSubmission = (submission) => {
+    setSelectedSubmission(submission);
+    setSelectedCompetition(submission.competitionId._id);
+    setShowSubmitModal(true);
+    setShowMySubmissionsModal(false);
+  };
+
+  const handleDeleteSubmission = async (submissionId) => {
+    if (window.confirm('Are you sure you want to delete this submission?')) {
+      try {
+        await api.delete(`/submissions/${submissionId}`);
+        await fetchMySubmissions(); // Refresh the list
+        setToastMessage('Submission deleted successfully');
+        setToastVariant('success');
+        setShowToast(true);
+      } catch (err) {
+        setToastMessage(err.response?.data?.message || 'Failed to delete submission');
+        setToastVariant('danger');
+        setShowToast(true);
+      }
+    }
+  };
+
   return (
     <>
       <Navbar expand="lg" className="custom-navbar">
@@ -375,7 +409,11 @@ function AppNavbar() {
                             className="avatar-img"
                           />
                         ) : (
-                          <i className="fas fa-user-circle avatar-icon"></i>
+                          <img
+                            src={`${process.env.REACT_APP_API_URL.replace('/api', '')}/images/user/default-avatar.png`}
+                            alt="User Avatar"
+                            className="avatar-img"
+                          />
                         )}
                       </div>
                       <span className="user-email">{user.email}</span>
@@ -397,10 +435,12 @@ function AppNavbar() {
                       My submissions
                     </NavDropdown.Item>
                   )}
-                  <NavDropdown.Item onClick={() => setShowSubmitModal(true)}>
-                    <i className="fas fa-upload me-2"></i>
-                    Submit Artwork
-                  </NavDropdown.Item>
+                  {user.role === 'student' && (
+                    <NavDropdown.Item onClick={() => setShowSubmitModal(true)}>
+                      <i className="fas fa-upload me-2"></i>
+                      Submit Artwork
+                    </NavDropdown.Item>
+                  )}
                   <NavDropdown.Item onClick={() => {
                     const userData = JSON.parse(localStorage.getItem('user'));
                     setProfileForm({
@@ -806,25 +846,62 @@ function AppNavbar() {
                 <span className="visually-hidden">Loading...</span>
               </Spinner>
             </div>
+          ) : mySubmissions.length === 0 ? (
+            <div className="text-center py-4">
+              <i className="fas fa-image fa-3x text-muted mb-3"></i>
+              <p className="text-muted">No submissions yet</p>
+            </div>
           ) : (
-            <div className="row g-3">
+            <div className="row g-4">
               {mySubmissions.map((submission) => (
-                <div key={submission._id} className="col-md-6 col-lg-4">
-                  <Card className="h-100">
-                    <Card.Img
-                      variant="top"
-                      src={`${process.env.REACT_APP_API_URL.replace('/api', '')}${submission.image}`}
-                      onError={(e) => {
-                        e.target.onerror = null;
-                        e.target.src = `${process.env.REACT_APP_API_URL.replace('/api', '')}/images/submissions/default-image.jpg`;
-                      }}
-                      style={{ height: '200px', objectFit: 'cover' }}
-                    />
-                    <Card.Body>
-                      <Card.Title className="h6">
-                        {submission.competitionId.name}
-                      </Card.Title>
-                      <div className="d-flex justify-content-between align-items-center mb-2">
+                <div key={submission._id} className="col-md-4">
+                  <div className="card h-100">
+                    <div className="submission-container position-relative">
+                      <img
+                        src={`${process.env.REACT_APP_API_URL.replace('/api', '')}${submission.image}`}
+                        alt="Submission"
+                        className="card-img-top"
+                        style={{ height: '200px', objectFit: 'cover' }}
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.src = `${process.env.REACT_APP_API_URL.replace('/api', '')}/images/submissions/default-image.jpg`;
+                        }}
+                      />
+                      <div className="submission-overlay position-absolute top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center">
+                        <div className="d-flex gap-1">
+                          <Button
+                            variant="primary"
+                            size="sm"
+                            onClick={() => handleViewSubmission(submission)}
+                            title="View"
+                            className="d-flex align-items-center"
+                          >
+                            <i className="fas fa-eye"></i>View
+                          </Button>
+                          <Button
+                            variant="warning"
+                            size="sm"
+                            onClick={() => handleEditSubmission(submission)}
+                            title="Edit"
+                            className="d-flex align-items-center"
+                          >
+                            <i className="fas fa-edit"></i>Edit
+                          </Button>
+                          <Button
+                            variant="danger"
+                            size="sm"
+                            onClick={() => handleDeleteSubmission(submission._id)}
+                            title="Delete"
+                            className="d-flex align-items-center"
+                          >
+                            <i className="fas fa-trash"></i>Delete
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="card-body">
+                      <h6 className="card-title">{submission.competitionId?.name}</h6>
+                      <div className="d-flex justify-content-between align-items-center">
                         <Badge bg={submission.score ? 'success' : 'secondary'}>
                           Score: {submission.score || 'Not scored'}
                         </Badge>
@@ -833,7 +910,7 @@ function AppNavbar() {
                         </small>
                       </div>
                       {submission.scoredBy && (
-                        <small className="text-muted d-block">
+                        <small className="text-muted d-block mt-1">
                           Scored by: {submission.scoredBy}
                         </small>
                       )}
@@ -842,31 +919,81 @@ function AppNavbar() {
                           Scored on: {new Date(submission.scoredAt).toLocaleDateString()}
                         </small>
                       )}
-                    </Card.Body>
-                    <Card.Footer className="bg-transparent">
+                    </div>
+                    <div className="card-footer bg-transparent border-top">
                       <Button
                         variant="outline-primary"
                         size="sm"
-                        className="w-100"
-                        onClick={() => {
-                          setShowMySubmissionsModal(false);
-                          navigate(`/competitions/${submission.competitionId._id}`);
-                        }}
+                        as={Link}
+                        to={`/competitions/${submission.competitionId?._id}`}
+                        className="w-100 d-flex align-items-center justify-content-center"
+                        target="_blank"
+                        rel="noopener noreferrer"
                       >
+                        <i className="fas fa-trophy me-1"></i>
                         View Competition
                       </Button>
-                    </Card.Footer>
-                  </Card>
+                    </div>
+                  </div>
                 </div>
               ))}
-              {mySubmissions.length === 0 && (
-                <div className="col-12 text-center py-4">
-                  <p className="text-muted mb-0">No submissions found</p>
-                </div>
-              )}
             </div>
           )}
         </Modal.Body>
+      </Modal>
+
+      {/* Image View Modal */}
+      <Modal
+        show={showImageModal}
+        onHide={() => {
+          setShowImageModal(false);
+          setSelectedSubmission(null);
+        }}
+        dialogClassName="submission-modal"
+        contentClassName="submission-modal-content"
+      >
+        {selectedSubmission && (
+          <>
+            <Modal.Header closeButton className="submission-modal-header">
+              <div className="d-flex justify-content-between align-items-center w-100">
+                <div className="submission-info d-flex align-items-center">
+                  <i className="fas fa-user-circle fs-4 me-2 text-primary"></i>
+                  <div>
+                    <h6 className="mb-0">{selectedSubmission.author}</h6>
+                    <small className="text-muted">
+                      Submitted on {new Date(selectedSubmission.createdAt).toLocaleDateString()}
+                    </small>
+                  </div>
+                </div>
+
+                <Badge
+                  bg={selectedSubmission.score ? 'success' : 'secondary'}
+                  className="score-badge"
+                >
+                  Score: {selectedSubmission.score || 'Not scored'}
+                </Badge>
+              </div>
+            </Modal.Header>
+
+            <Modal.Body className="p-0 submission-modal-body">
+              <div className="image-container">
+                <TransformWrapper>
+                  <TransformComponent>
+                    <img
+                      src={`${process.env.REACT_APP_API_URL.replace('/api', '')}${selectedSubmission.image}`}
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = `${process.env.REACT_APP_API_URL.replace('/api', '')}/images/submissions/default-image.jpg`;
+                      }}
+                      alt={`Submission by ${selectedSubmission.author}`}
+                      className="submission-detail-image"
+                    />
+                  </TransformComponent>
+                </TransformWrapper>
+              </div>
+            </Modal.Body>
+          </>
+        )}
       </Modal>
     </>
   );

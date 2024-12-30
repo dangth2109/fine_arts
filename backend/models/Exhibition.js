@@ -17,7 +17,6 @@ const exhibitionSchema = new mongoose.Schema({
   },
   background: {
     type: String,
-    required: [true, 'Exhibition background image is required']
   },
   start: {
     type: Date,

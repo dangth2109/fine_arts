@@ -31,19 +31,25 @@ exports.createSubmission = async (req, res) => {
       });
     }
 
+    // Check for existing submission
     const existingSubmission = await Submission.findOne({
       competitionId,
       author
     });
 
+    // If exists, delete old submission and its image
     if (existingSubmission) {
-      if (req.file) fs.unlinkSync(req.file.path);
-      return res.status(400).json({
-        success: false,
-        message: 'You already have a submission for this competition'
-      });
+      if (existingSubmission.image) {
+        const imagePath = path.join(__dirname, '../../uploads', existingSubmission.image);
+        if (fs.existsSync(imagePath)) {
+          fs.unlinkSync(imagePath);
+        }
+      }
+      await existingSubmission.deleteOne();
+
     }
 
+    // Create new submission
     const submission = new Submission({
       competitionId,
       author,
@@ -52,9 +58,12 @@ exports.createSubmission = async (req, res) => {
 
     await submission.save();
 
-    await Competition.findByIdAndUpdate(competitionId, {
-      $inc: { totalSubmissions: 1 }
-    });
+    // No need to increment totalSubmissions if we're replacing an existing one
+    if (!existingSubmission) {
+      await Competition.findByIdAndUpdate(competitionId, {
+        $inc: { totalSubmissions: 1 }
+      });
+    }
 
     res.status(201).json({
       success: true,
@@ -71,19 +80,52 @@ exports.createSubmission = async (req, res) => {
 
 /**
  * Get all submissions
- * Admin: all submissions
- * Users: only their own submissions
+ * Admin, Manager: all submissions
+ * Student: only their own submissions
  */
 exports.getAllSubmissions = async (req, res) => {
   try {
-    const { competitionId } = req.query;
-    const query = competitionId ? { competitionId } : {};
+    const { competition, author, score, scoredBy, scoredAt } = req.query;
+    const filter = {};
 
+    // Chỉ cho phép user thường xem submission của họ
     if (req.user.role !== 'admin' && req.user.role !== 'manager' && req.user.role !== 'staff') {
-      query.author = req.user.email;
+      filter.author = req.user.email;
     }
 
-    const submissions = await Submission.find(query)
+    // Filter by competition name (search like)
+    if (competition) {
+      const competitions = await Competition.find({
+        name: { $regex: competition, $options: 'i' }
+      }).select('_id');
+      filter.competitionId = { $in: competitions.map(c => c._id) };
+    }
+
+    // Filter by author email (search like)
+    if (author) {
+      filter.author = { $regex: author, $options: 'i' };
+    }
+
+    // Filter by score
+    if (score) {
+      filter.score = score;
+    }
+
+    // Filter by scorer
+    if (scoredBy) {
+      filter.scoredBy = { $regex: scoredBy, $options: 'i' };
+    }
+
+    // Filter by scored date
+    if (scoredAt) {
+      const date = new Date(scoredAt);
+      filter.scoredAt = {
+        $gte: new Date(date.setHours(0, 0, 0, 0)),
+        $lt: new Date(date.setHours(23, 59, 59, 999))
+      };
+    }
+
+    const submissions = await Submission.find(filter)
       .sort({ createdAt: -1 })
       .populate('competitionId', 'name');
 
@@ -102,8 +144,8 @@ exports.getAllSubmissions = async (req, res) => {
 
 /**
  * Get detailed information of a specific submission
- * Admin: any submission
- * Users: only their own submissions
+ * Admin, Manager: any submission
+ * Student: only their own submissions
  */
 exports.getSubmissionDetail = async (req, res) => {
   try {
@@ -138,7 +180,7 @@ exports.getSubmissionDetail = async (req, res) => {
 
 /**
  * Update submission score
- * Admin access only
+ * Admin, Manager, Staff access
  */
 exports.updateSubmission = async (req, res) => {
   try {
@@ -195,8 +237,8 @@ exports.updateSubmission = async (req, res) => {
 
 /**
  * Delete a submission
- * Admin: any submission
- * Users: only their own submissions
+ * Admin, Manager: any submission
+ * Student: only their own submissions
  */
 exports.deleteSubmission = async (req, res) => {
   try {

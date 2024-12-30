@@ -24,91 +24,91 @@ const seedData = async () => {
                 email: 'admin01@mail.com',
                 password: hashedPassword,
                 role: 'admin',
-                avatar: '/images/user/default-avatar.jpg'
+                avatar: null
             },
             {
                 email: 'admin02@mail.com',
                 password: hashedPassword,
                 role: 'admin',
-                avatar: '/images/user/default-avatar.jpg'
+                avatar: null
             },
             {
                 email: 'admin03@mail.com',
                 password: hashedPassword,
                 role: 'admin',
-                avatar: '/images/user/default-avatar.jpg'
+                avatar: null
             },
             {
                 email: 'student01@mail.com',
                 password: hashedPassword,
                 role: 'student',
-                avatar: '/images/user/default-avatar.jpg'
+                avatar: null
             },
             {
                 email: 'student02@mail.com',
                 password: hashedPassword,
                 role: 'student',
-                avatar: '/images/user/default-avatar.jpg'
+                avatar: null
             },
             {
                 email: 'student03@mail.com',
                 password: hashedPassword,
                 role: 'student',
-                avatar: '/images/user/default-avatar.jpg'
+                avatar: null
             },
             {
                 email: 'student04@mail.com',
                 password: hashedPassword,
                 role: 'student',
-                avatar: '/images/user/default-avatar.jpg'
+                avatar: null
             },
             {
                 email: 'student05@mail.com',
                 password: hashedPassword,
                 role: 'student',
-                avatar: '/images/user/default-avatar.jpg'
+                avatar: null
             },
             {
                 email: 'student06@mail.com',
                 password: hashedPassword,
                 role: 'student',
-                avatar: '/images/user/default-avatar.jpg'
+                avatar: null
             },
             {
                 email: 'student07@mail.com',
                 password: hashedPassword,
                 role: 'student',
-                avatar: '/images/user/default-avatar.jpg'
+                avatar: null
             },
             {
                 email: 'student08@mail.com',
                 password: hashedPassword,
                 role: 'student',
-                avatar: '/images/user/default-avatar.jpg'
+                avatar: null
             },
             {
                 email: 'student09@mail.com',
                 password: hashedPassword,
                 role: 'student',
-                avatar: '/images/user/default-avatar.jpg'
+                avatar: null
             },
             {
                 email: 'student10@mail.com',
                 password: hashedPassword,
                 role: 'student',
-                avatar: '/images/user/default-avatar.jpg'
+                avatar: null
             },
             {
                 email: 'staff@mail.com',
                 password: hashedPassword,
                 role: 'staff',
-                avatar: '/images/user/default-avatar.jpg'
+                avatar: null
             },
             {
                 email: 'manager@mail.com',
                 password: hashedPassword,
                 role: 'manager',
-                avatar: '/images/user/default-avatar.jpg'
+                avatar: null
             }
         ]);
 
@@ -117,7 +117,7 @@ const seedData = async () => {
             {
                 name: 'Competition 01',
                 description: 'Description for competition 01',
-                background: '/images/competitions/default-background.jpg',
+                background: null,
                 start: new Date('2024-12-01'),
                 end: new Date('2025-05-31'),
                 totalSubmissions: 0,
@@ -127,7 +127,7 @@ const seedData = async () => {
             {
                 name: 'Competition 02',
                 description: 'Description for competition 02',
-                background: '/images/competitions/default-background.jpg',
+                background: null,
                 start: new Date('2024-12-15'),
                 end: new Date('2024-12-30'),
                 totalSubmissions: 0,
@@ -137,7 +137,7 @@ const seedData = async () => {
             {
                 name: 'Competition 03',
                 description: 'Description for competition 03',
-                background: '/images/competitions/default-background.jpg',
+                background: null,
                 start: new Date('2025-01-01'),
                 end: new Date('2025-01-30'),
                 totalSubmissions: 0,
@@ -147,7 +147,7 @@ const seedData = async () => {
             {
                 name: 'Competition 04',
                 description: 'Description for competition 04',
-                background: '/images/competitions/default-background.jpg',
+                background: null,
                 start: new Date('2025-05-01'),
                 end: new Date('2025-12-09'),
                 totalSubmissions: 0,
@@ -157,7 +157,7 @@ const seedData = async () => {
             {
                 name: 'Competition 05',
                 description: 'Description for competition 05',
-                background: '/images/competitions/default-background.jpg',
+                background: null,
                 start: new Date('2025-02-10'),
                 end: new Date('2025-03-03'),
                 totalSubmissions: 0,
@@ -169,7 +169,7 @@ const seedData = async () => {
         // Create submissions for competitions
         const submissions = await Submission.insertMany([
             {
-                image: '/images/submissions/default-imagession.jpg',
+                image: null,
                 competitionId: competitions[0]._id,
                 author: users[3].email,
                 score: 8,
@@ -177,7 +177,7 @@ const seedData = async () => {
                 scoredAt: new Date()
             },
             {
-                image: '/images/submissions/default-imagession.jpg',
+                image: null,
                 competitionId: competitions[1]._id,
                 author: users[3].email,
                 score: 5,
@@ -185,7 +185,7 @@ const seedData = async () => {
                 scoredAt: new Date()
             },
             {
-                image: '/images/submissions/default-imagession.jpg',
+                image: null,
                 competitionId: competitions[2]._id,
                 author: users[3].email,
                 score: 6,
@@ -193,7 +193,7 @@ const seedData = async () => {
                 scoredAt: new Date()
             },
             {
-                image: '/images/submissions/default-imagession.jpg',
+                image: null,
                 competitionId: competitions[3]._id,
                 author: users[3].email,
                 score: 7,
@@ -201,7 +201,7 @@ const seedData = async () => {
                 scoredAt: new Date()
             },
             {
-                image: '/images/submissions/default-imagession.jpg',
+                image: null,
                 competitionId: competitions[4]._id,
                 author: users[3].email,
                 score: 8,
@@ -210,7 +210,7 @@ const seedData = async () => {
             },
 
             {
-                image: '/images/submissions/default-imagession.jpg',
+                image: null,
                 competitionId: competitions[0]._id,
                 author: users[4].email,
                 score: 7,
@@ -218,7 +218,7 @@ const seedData = async () => {
                 scoredAt: new Date()
             },
             {
-                image: '/images/submissions/default-imagession.jpg',
+                image: null,
                 competitionId: competitions[1]._id,
                 author: users[4].email,
                 score: 8,
@@ -226,7 +226,7 @@ const seedData = async () => {
                 scoredAt: new Date()
             },
             {
-                image: '/images/submissions/default-imagession.jpg',
+                image: null,
                 competitionId: competitions[2]._id,
                 author: users[4].email,
                 score: 9,
@@ -234,7 +234,7 @@ const seedData = async () => {
                 scoredAt: new Date()
             },
             {
-                image: '/images/submissions/default-imagession.jpg',
+                image: null,
                 competitionId: competitions[3]._id,
                 author: users[4].email,
                 score: 7,
@@ -242,7 +242,7 @@ const seedData = async () => {
                 scoredAt: new Date()
             },
             {
-                image: '/images/submissions/default-imagession.jpg',
+                image: null,
                 competitionId: competitions[4]._id,
                 author: users[4].email,
                 score: 6,
@@ -251,7 +251,7 @@ const seedData = async () => {
             },
 
             {
-                image: '/images/submissions/default-imagession.jpg',
+                image: null,
                 competitionId: competitions[0]._id,
                 author: users[5].email,
                 score: 7,
@@ -259,7 +259,7 @@ const seedData = async () => {
                 scoredAt: new Date()
             },
             {
-                image: '/images/submissions/default-imagession.jpg',
+                image: null,
                 competitionId: competitions[1]._id,
                 author: users[5].email,
                 score: 9,
@@ -267,7 +267,7 @@ const seedData = async () => {
                 scoredAt: new Date()
             },
             {
-                image: '/images/submissions/default-imagession.jpg',
+                image: null,
                 competitionId: competitions[2]._id,
                 author: users[5].email,
                 score: 6,
@@ -275,7 +275,7 @@ const seedData = async () => {
                 scoredAt: new Date()
             },
             {
-                image: '/images/submissions/default-imagession.jpg',
+                image: null,
                 competitionId: competitions[3]._id,
                 author: users[5].email,
                 score: 7,
@@ -283,7 +283,7 @@ const seedData = async () => {
                 scoredAt: new Date()
             },
             {
-                image: '/images/submissions/default-imagession.jpg',
+                image: null,
                 competitionId: competitions[4]._id,
                 author: users[5].email,
                 score: 6,
@@ -292,7 +292,7 @@ const seedData = async () => {
             },
 
             {
-                image: '/images/submissions/default-imagession.jpg',
+                image: null,
                 competitionId: competitions[0]._id,
                 author: users[6].email,
                 score: 7,
@@ -300,7 +300,7 @@ const seedData = async () => {
                 scoredAt: new Date()
             },
             {
-                image: '/images/submissions/default-imagession.jpg',
+                image: null,
                 competitionId: competitions[1]._id,
                 author: users[6].email,
                 score: 5,
@@ -308,7 +308,7 @@ const seedData = async () => {
                 scoredAt: new Date()
             },
             {
-                image: '/images/submissions/default-imagession.jpg',
+                image: null,
                 competitionId: competitions[2]._id,
                 author: users[6].email,
                 score: 10,
@@ -316,7 +316,7 @@ const seedData = async () => {
                 scoredAt: new Date()
             },
             {
-                image: '/images/submissions/default-imagession.jpg',
+                image: null,
                 competitionId: competitions[3]._id,
                 author: users[6].email,
                 score: 8,
@@ -324,7 +324,7 @@ const seedData = async () => {
                 scoredAt: new Date()
             },
             {
-                image: '/images/submissions/default-imagession.jpg',
+                image: null,
                 competitionId: competitions[4]._id,
                 author: users[6].email,
                 score: 9,
@@ -356,7 +356,7 @@ const seedData = async () => {
                 name: 'Exhibition 01',
                 description: 'Description for exhibition 01',
                 location: 'Vietnam',
-                background: '/images/exhibitions/default-background.jpg',
+                background: null,
                 start: new Date('2024-03-15'),
                 end: new Date('2024-04-15'),
                 totalSubmissions: 0,
@@ -371,7 +371,7 @@ const seedData = async () => {
                 name: 'Exhibition 02',
                 description: 'Description for exhibition 02',
                 location: 'India',
-                background: '/images/exhibitions/default-background.jpg',
+                background: null,
                 start: new Date('2025-03-01'),
                 end: new Date('2025-03-30'),
                 totalSubmissions: 0,
@@ -386,7 +386,7 @@ const seedData = async () => {
                 name: 'Exhibition 03',
                 description: 'Description for exhibition 03',
                 location: 'Thailand',
-                background: '/images/exhibitions/default-background.jpg',
+                background: null,
                 start: new Date('2025-02-01'),
                 end: new Date('2025-03-28'),
                 totalSubmissions: 0,
@@ -401,7 +401,7 @@ const seedData = async () => {
                 name: 'Exhibition 04',
                 description: 'Description for exhibition 04',
                 location: 'United States',
-                background: '/images/exhibitions/default-background.jpg',
+                background: null,
                 start: new Date('2024-12-01'),
                 end: new Date('2025-01-01'),
                 totalSubmissions: 0,
@@ -416,7 +416,7 @@ const seedData = async () => {
                 name: 'Exhibition 05',
                 description: 'Description for exhibition 05',
                 location: 'France',
-                background: '/images/exhibitions/default-background.jpg',
+                background: null,
                 start: new Date('2024-10-08'),
                 end: new Date('2025-01-30'),
                 totalSubmissions: 0,

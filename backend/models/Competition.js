@@ -33,7 +33,6 @@ const competitionSchema = new mongoose.Schema({
   },
   background: {
     type: String,
-    required: [true, 'Background image is required']
   },
   isHide: {
     type: Boolean,
