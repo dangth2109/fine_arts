@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Container, Row, Col, Card, Carousel } from 'react-bootstrap';
 import api from '../services/api';
-import './MainLayout.css';
+import '../assets/css/MainLayout.css';
 import { Link, useNavigate } from 'react-router-dom';
 
 function MainLayout() {

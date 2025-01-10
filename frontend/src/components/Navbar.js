@@ -4,8 +4,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../services/api';
-import './Navbar.css';
-
+import '../assets/css/Navbar.css';
 function AppNavbar() {
   const { user, logout, login, register } = useAuth();
   const location = useLocation();

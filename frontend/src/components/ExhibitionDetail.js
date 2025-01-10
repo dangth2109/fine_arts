@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import { Container, Row, Col, Card, Modal, Badge } from 'react-bootstrap';
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
 import api from '../services/api';
-import './ExhibitionDetail.css';
+import '../assets/css/ExhibitionDetail.css';
 
 function ExhibitionDetail() {
   const { id } = useParams();

@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import { Container, Row, Col, Card, Badge, Modal, Form, Button } from 'react-bootstrap';
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
 import api from '../services/api';
-import './CompetitionDetail.css';
+import '../assets/css/CompetitionDetail.css';
 import { useAuth } from '../contexts/AuthContext';
 
 function CompetitionDetail() {
