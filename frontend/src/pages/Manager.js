@@ -2,12 +2,14 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Container, Row, Col, Nav, Table, Badge, Modal, Form, Button, Alert, Toast } from 'react-bootstrap';
 import api from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 const baseURL = (process.env.REACT_APP_API_URL || 'http://localhost:5000/api').replace('/api', '');
 const now = () => new Date();
 
 function Manager() {
-  const { login } = useAuth();
+  const { login, user } = useAuth();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('users');
   const [users, setUsers] = useState([]);
   const [competitions, setCompetitions] = useState([]);
@@ -179,6 +181,13 @@ function Manager() {
       fetchData('competitions');
     }
   }, [debouncedCompetitionFilters, activeTab]);
+
+  useEffect(() => {
+    const allowedRoles = ['admin', 'staff', 'manager'];
+    if (!user || !allowedRoles.includes(user.role)) {
+      navigate('/');
+    }
+  }, [user, navigate]);
 
   const fetchData = async (tab) => {
     setLoading(true);
