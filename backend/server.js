@@ -46,7 +46,8 @@ const startServer = async () => {
     console.log('MongoDB Connected...');
 
     // Ask about seeding only in development
-    const shouldSeed = false;
+    const shouldSeed = await askForSeeding();
+    // const shouldSeed = false;
     if (shouldSeed) {
       console.log('Seeding database...');
       await seedData();
