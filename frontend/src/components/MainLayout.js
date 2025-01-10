@@ -142,7 +142,7 @@ function MainLayout() {
         </Row>
 
         {/* Competitions Section */}
-        <Row className="mt-5">
+        <Row className="mb-5">
           <Col>
             <div className="d-flex justify-content-between align-items-center mb-4">
               <h2 className="section-title mb-0">
@@ -160,7 +160,7 @@ function MainLayout() {
           </Col>
         </Row>
 
-        <Row>
+        <Row className="mb-5">
           <Col>
             {competitions.length > 0 ? (
               <Carousel
