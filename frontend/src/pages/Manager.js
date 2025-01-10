@@ -815,7 +815,7 @@ function Manager() {
                             ? URL.createObjectURL(previewAvatar)
                             : selectedUser?.avatar
                               ? `${baseURL}${selectedUser.avatar}`
-                              : 'https://via.placeholder.com/100'
+                              : `${process.env.REACT_APP_API_URL.replace('/api', '')}/images/user/default-avatar.png`
                         }
                         onError={(e) => {
                           e.target.onerror = null;

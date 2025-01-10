@@ -699,12 +699,8 @@ function AppNavbar() {
                         ? URL.createObjectURL(previewAvatar)
                         : user?.avatar
                           ? `${process.env.REACT_APP_API_URL.replace('/api', '')}${user.avatar}`
-                          : 'https://via.placeholder.com/100'
+                          : `${process.env.REACT_APP_API_URL.replace('/api', '')}/images/user/default-avatar.png`
                     }
-                    onError={(e) => {
-                      e.target.onerror = null;
-                      e.target.src = `${process.env.REACT_APP_API_URL.replace('/api', '')}/images/user/default-avatar.png`;
-                    }}
                     alt="Avatar"
                     className="rounded-circle w-100 h-100"
                     style={{ objectFit: 'cover' }}
